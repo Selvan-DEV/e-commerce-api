@@ -14,7 +14,7 @@ exports.registerUser = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      isPrimeUser: false,
+      isPrimaryUser: false,
       isActive: true,
       password: hashedPassword
     });
@@ -26,6 +26,7 @@ exports.registerUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
+  console.log(req, 'req');
   try {
     const { email, phoneNumber, password } = req.body;
 
