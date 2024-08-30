@@ -26,7 +26,6 @@ exports.registerUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
-  console.log(req, 'req');
   try {
     const { email, phoneNumber, password } = req.body;
 

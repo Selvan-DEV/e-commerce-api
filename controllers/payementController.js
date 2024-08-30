@@ -1,22 +1,20 @@
 const stripe = require('../config/stripeConfig');
-const axios = require('axios');
 const Payment = require('../models/paymentModel');
 
 exports.createPaymentMethod = async (req, res) => {
   try {
     const { id, email, userId } = req.body;
     const userCardCustomerMappingData = await Payment.getCustomerIdByUserId(userId);
-    let result = null;
 
     /** If user ID is not there in the usercarddetails table then create customer account in the stripe 
      * and add customer and user in the usercarddetails 
-     * */
+     */
     if (userCardCustomerMappingData.length > 0) {
       const attachNewCardToCustomer = await stripe.paymentMethods.attach(id, {
         customer: userCardCustomerMappingData[0].paymentCustomerId,
       });
-      const payload = { userId: userId, paymentMethodId: id, customerId: userCardCustomerMappingData[0].paymentCustomerId }
-      result = await Payment.addPaymentMethodId(payload);
+      const payload = { userId: userId, paymentMethodId: id, customerId: userCardCustomerMappingData[0].paymentCustomerId };
+      const result = await Payment.addPaymentMethodId(payload);
     } else {
       /** Create customer in stripe for user */
       const customer = await stripe.customers.create({
@@ -25,13 +23,13 @@ exports.createPaymentMethod = async (req, res) => {
       });
 
       /** Save Customer ID and User ID in the usercarddetails table */
-      const payload = { userId: userId, paymentMethodId: id, customerId: customer.id }
-      result = await Payment.addPaymentMethodId(payload);
+      const payload = { userId: userId, paymentMethodId: id, customerId: customer.id };
+      const saveCustomerIdResponse = await Payment.addPaymentMethodId(payload);
     }
 
-    res.json({ message: 'Payment method created successfully', result });
+    return res.json({ message: 'Payment method created successfully' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
