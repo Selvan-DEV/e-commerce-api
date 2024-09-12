@@ -19,6 +19,11 @@ class Order {
     return result.affectedRows;
   }
 
+  static async updateCartUserId(userId, sessionId) {
+    const [result] = await db.query(`UPDATE cartitems SET userId = ? WHERE sessionId = ?`, [userId, sessionId]);
+    return result.affectedRows;
+  }
+
   static async deleteCartItem(cartItemId) {
     const [result] = await db.query(`DELETE FROM cartitems WHERE id = ?`, [cartItemId]);
     return result.affectedRows;
@@ -36,14 +41,14 @@ class Order {
   }
 
   static async addOrderItems(orderProductData) {
-    const [result] = await db.query(`INSERT INTO ordersitems (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)`,
+    const [result] = await db.query(`INSERT INTO orderitems (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)`,
       [orderProductData.orderId, orderProductData.productId, orderProductData.quantity, orderProductData.price]);
     return result;
   }
 
   static async deleteCartItemsByUserId(userId) {
     try {
-      const [result] = await db.query(`DELETE FROM cartitems WHERE userId = ?`, [userId]);
+      const [result] = await db.query(`DELETE FROM cartitems WHERE userId = ? OR sessionId = ?`, [userId, String(userId)]);
       return result.affectedRows;
     } catch (error) {
       throw error;
@@ -56,7 +61,7 @@ class Order {
   }
 
   static async getOrderByOrderId(orderId) {
-    const [rows] = await db.query(`SELECT * FROM ordersitems WHERE orderId = ?`, [orderId]);
+    const [rows] = await db.query(`SELECT * FROM orderitems WHERE orderId = ?`, [orderId]);
     return rows;
   }
 }

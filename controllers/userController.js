@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Order = require('../models/orderModel');
 
 exports.registerUser = async (req, res) => {
   try {
@@ -27,10 +28,16 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    const { email, phoneNumber, password } = req.body;
+    const { email, phoneNumber, password, sessionId, role } = req.body;
 
     // Check if the user exists
-    const user = await User.findUserByEmailOrPhone(email, phoneNumber);
+    let user;
+    if (role === 'Admin') {
+      user = await User.findAdminUser(email, phoneNumber, role);
+    } else {
+      user = await User.findUserByEmailOrPhone(email, phoneNumber);
+    }
+
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -47,6 +54,10 @@ exports.loginUser = async (req, res) => {
       process.env.JWT_SECRET, // Ensure you have a JWT_SECRET environment variable
       { expiresIn: '1h' }
     );
+
+    if (token && sessionId) {
+      const isUpdated = await Order.updateCartUserId(user.userId, sessionId);
+    }
 
     res.status(200).json({ token, user });
   } catch (error) {

@@ -4,9 +4,11 @@ exports.getProductList = async (req, res) => {
   try {
     const filters = {
       search: req.query.search,
-      priceRange: req.query.minPrice && req.query.maxPrice ? { min: req.query.minPrice, max: req.query.maxPrice } : null,
+      priceRange: req.query.minPrice && req.query.maxPrice ?
+        { min: req.query.minPrice, max: req.query.maxPrice } : null,
       rating: req.query.rating,
-      brand: req.query.brand
+      brand: req.query.brand,
+      categoryId: req.query.categoryId
     };
 
     const pagination = {
@@ -15,11 +17,50 @@ exports.getProductList = async (req, res) => {
     };
 
     const products = await Product.getAll(filters, pagination);
-    res.status(200).json(products);
+
+    const productWithCategory = await Promise.all(products.map(async (item) => {
+      const category = await Product.getCategoryById(item.categoryId);
+      return {
+        ...item,
+        categoryName: category.categoryName
+      };
+    }));
+    res.status(200).json(productWithCategory);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.getCategoriesAndProducts = async (_req, res) => {
+  try {
+    const products = await Product.getAllProducts();
+    const categoryMap = new Map();
+
+    for (const item of products) {
+      // Fetch category details for each product
+      const category = await Product.getCategoryById(item.categoryId);
+
+      if (!categoryMap.has(category.categoryId)) {
+        categoryMap.set(category.categoryId, {
+          categoryName: category.categoryName,
+          categoryId: category.categoryId,
+          products: []
+        });
+      }
+
+      // Add the product to the appropriate category
+      categoryMap.get(category.categoryId).products.push(item.productName);
+    }
+
+    // Convert the map back to an array
+    const categoriesAndProducts = Array.from(categoryMap.values());
+
+    res.status(200).json(categoriesAndProducts);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 exports.getProductDetail = async (req, res) => {
   try {

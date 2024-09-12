@@ -5,10 +5,10 @@ class Product {
     let query = `SELECT * FROM products WHERE 1=1`;
     const params = [];
 
-    if (filters.search) {
-      query += ` AND name LIKE ?`;
-      params.push(`%${filters.search}%`);
-    }
+    // if (filters.search) {
+    //   query += ` AND productName LIKE ?`;
+    //   params.push(`%${filters.search}%`);
+    // }
 
     if (filters.priceRange) {
       query += ` AND price BETWEEN ? AND ?`;
@@ -25,10 +25,20 @@ class Product {
       params.push(filters.brand);
     }
 
+    if (filters.categoryId) {
+      query += ` AND categoryId = ?`;
+      params.push(filters.categoryId);
+    }
+
     query += ` LIMIT ? OFFSET ?`;
     params.push(pagination.limit, pagination.offset);
 
     const [rows] = await db.query(query, params);
+    return rows;
+  }
+
+  static async getAllProducts() {
+    const [rows] = await db.query(`SELECT * FROM products`);
     return rows;
   }
 
@@ -42,6 +52,10 @@ class Product {
     return rows[0];
   }
 
+  static async getCategoryById(categoryId) {
+    const [rows] = await db.query(`SELECT * FROM productscategory WHERE categoryId = ?`, [categoryId]);
+    return rows[0];
+  }
 
   static async create(product) {
     const [result] = await db.query(`INSERT INTO products (name, description, price, rating, brand) VALUES (?, ?, ?, ?, ?)`,
