@@ -4,6 +4,10 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+
+// Shop Related API's
+const shopRoutes = require('./routes/shopRoutes');
+
 const cors = require('cors');
 
 require('dotenv').config();
@@ -21,6 +25,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/shop', shopRoutes);
 
 // Listen
 app.listen(port, () => {

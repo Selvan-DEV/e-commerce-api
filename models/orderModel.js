@@ -35,8 +35,8 @@ class Order {
   }
 
   static async createOrder(orderItem) {
-    const [result] = await db.query(`INSERT INTO orders (userId, paymentMethodId, orderAmount, deliveryAddressId, shippingAddressId) VALUES (?, ?, ?, ?, ?)`,
-      [orderItem.userId, orderItem.paymentMethodId, orderItem.orderAmount, orderItem.deliveryAddressId, orderItem.shippingAddressId]);
+    const [result] = await db.query(`INSERT INTO orders (userId, paymentMethodId, orderAmount, deliveryAddressId, shippingAddressId, shopId, orderStatus) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [orderItem.userId, orderItem.paymentMethodId, orderItem.orderAmount, orderItem.deliveryAddressId, orderItem.shippingAddressId, orderItem.shopId, orderItem.orderStatusId]);
     return result;
   }
 

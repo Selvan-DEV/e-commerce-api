@@ -22,7 +22,7 @@ exports.getProductList = async (req, res) => {
       const category = await Product.getCategoryById(item.categoryId);
       return {
         ...item,
-        categoryName: category.categoryName
+        categoryName: category.categoryName ? category.categoryName : ''
       };
     }));
     res.status(200).json(productWithCategory);
@@ -38,7 +38,7 @@ exports.getCategoriesAndProducts = async (_req, res) => {
 
     for (const item of products) {
       // Fetch category details for each product
-      const category = await Product.getCategoryById(item.categoryId);
+      const category = await Product.getCategoryById(item.id);
 
       if (!categoryMap.has(category.categoryId)) {
         categoryMap.set(category.categoryId, {
