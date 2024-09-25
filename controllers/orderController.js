@@ -1,5 +1,6 @@
 const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
+const Shop = require('../models/shopModel');
 const { v4: uuidv4 } = require('uuid');
 
 exports.addProductToCart = async (req, res) => {
@@ -128,14 +129,23 @@ exports.createOrder = async (req, res) => {
 exports.getOrdersByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    const response = await Order.getOrdersByUserId(userId);
+    const orders = await Order.getOrdersByUserId(userId);
 
-    if (!response.length) {
+    if (!orders.length) {
       res.status(404).json({ message: "No Order Found" });
       return
     }
 
-    res.status(200).json(response);
+    // Get Respective addressDetails
+    const ordersWithStatus = await Promise.all(orders.map(async (item) => {
+      const orderStatus = await Shop.getOrderStatusById(Number(item.orderStatus));
+      return {
+        ...item,
+        orderStatus: orderStatus?.orderStatusName || null
+      };
+    }));
+
+    res.status(200).json(ordersWithStatus);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

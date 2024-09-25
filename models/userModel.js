@@ -32,11 +32,11 @@ class User {
   }
 
   static async updateUser(userId, userData) {
-    const { firstName, lastName, email, phoneNumber, isPrimeUser, isActive } = userData;
+    const { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive } = userData;
     const [result] = await db.query(`
-            UPDATE users SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, isPrimeUser = ?, isActive = ?
+            UPDATE users SET firstName = ?, lastName = ?, email = ?, phoneNumber = ?, isPrimaryUser = ?, isActive = ?
             WHERE userId = ?`,
-      [firstName, lastName, email, phoneNumber, isPrimeUser, isActive, userId]);
+      [firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, userId]);
     return result.affectedRows;
   }
 

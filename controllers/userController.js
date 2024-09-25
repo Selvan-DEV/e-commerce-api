@@ -81,9 +81,9 @@ exports.getUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { firstName, lastName, email, phoneNumber, isPrimeUser, isActive } = req.body;
+    const { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive } = req.body;
 
-    const updatedUser = await User.updateUser(userId, { firstName, lastName, email, phoneNumber, isPrimeUser, isActive });
+    const updatedUser = await User.updateUser(userId, { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive });
 
     if (updatedUser) {
       res.status(200).json({ message: 'User updated successfully' });
