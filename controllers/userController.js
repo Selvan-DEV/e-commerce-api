@@ -29,30 +29,23 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, phoneNumber, password, sessionId, role } = req.body;
-
-    // Check if the user exists
-    let user;
-    if (role === 'Admin') {
-      user = await User.findAdminUser(email, phoneNumber, role);
-    } else {
-      user = await User.findUserByEmailOrPhone(email, phoneNumber);
-    }
+    const user = await User.findAdminUser(email, phoneNumber, role);
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.userId, email: user.email, isPrimeUser: user.isPrimeUser },
       process.env.JWT_SECRET, // Ensure you have a JWT_SECRET environment variable
-      { expiresIn: '1h' }
+      // { expiresIn: '1h' }
     );
 
     if (token && sessionId) {

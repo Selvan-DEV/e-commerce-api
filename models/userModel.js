@@ -12,7 +12,7 @@ class User {
 
   static async findUserByEmailOrPhone(email, phoneNumber) {
     const [rows] = await db.query(`
-        SELECT * FROM users WHERE email = ? OR phoneNumber = ?`,
+        SELECT * FROM users WHERE (email = ? OR phoneNumber = ?) AND role = ?`,
       [email, phoneNumber]
     );
     return rows[0];
