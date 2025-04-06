@@ -28,8 +28,8 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    const { email, phoneNumber, password, sessionId, role } = req.body;
-    const user = await User.findAdminUser(email, phoneNumber, role);
+    const { email, phoneNumber, password, sessionId } = req.body;
+    const user = await User.findAdminUser(email, phoneNumber);
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });

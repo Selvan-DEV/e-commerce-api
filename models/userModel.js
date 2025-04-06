@@ -18,10 +18,10 @@ class User {
     return rows[0];
   }
 
-  static async findAdminUser(email, phoneNumber, role) {
+  static async findAdminUser(email, phoneNumber) {
     const [rows] = await db.query(`
-        SELECT * FROM users WHERE (email = ? OR phoneNumber = ?) AND role = ?`,
-      [email, phoneNumber, role]
+        SELECT * FROM users WHERE (email = ? OR phoneNumber = ?)`,
+      [email, phoneNumber]
     );
     return rows[0];
   }
