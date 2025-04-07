@@ -9,6 +9,7 @@ exports.getDashboardSummaryCards = async (req, res) => {
     }
 
     const orders = await Shop.getOrdersByShopId(shopId);
+    const customers = await Shop.getCustomers(shopId);
     const ordersWithStatus = await Promise.all(orders.map(async (item) => {
       const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
       return {
@@ -23,10 +24,11 @@ exports.getDashboardSummaryCards = async (req, res) => {
       const newOrders = ordersWithStatus.filter(x => x.orderStatus === 'Order Received');
 
       const result = [
-        { key: 'Total Orders', value: ordersWithStatus.length, icon: '🛒', route: '/shop-management/orders' },
-        { key: 'Total New Orders', value: newOrders.length, icon: '🛒', route: '/shop-management/orders?status=1' },
-        { key: 'Total Ready For Dispatch', value: readyForDispatch.length, icon: "🍳", route: '/shop-management/orders?status=4' },
-        { key: 'Total Delivered', value: deliveredOrders.length, icon: "🥡", route: '/shop-management/orders?status=7' }
+        { key: 'Customers', value: customers.length, icon: 'people', route: '/shop-management/customers', change: "1.0%" },
+        // { key: 'Total Orders', value: ordersWithStatus.length, icon: 'order', route: '/shop-management/orders', change: "1.0%" },
+        { key: 'Total New Orders', value: newOrders.length, icon: 'order', route: '/shop-management/orders?status=1', change: "1.0%" },
+        { key: 'Total Ready For Dispatch', value: readyForDispatch.length, icon: "order", route: '/shop-management/orders?status=4', change: "1.0%" },
+        { key: 'Total Delivered', value: deliveredOrders.length, icon: "order", route: '/shop-management/orders?status=7', change: "1.0%" }
       ];
 
       return res.status(200).json(result);

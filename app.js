@@ -4,6 +4,7 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const userRoutes = require('./routes/userRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const shopDashboardRoutes = require('./routes/shopDashboardRoutes');
 
 // Shop Related API's
 const shopRoutes = require('./routes/shopRoutes');
@@ -26,6 +27,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/shop', shopRoutes);
+app.use('/api/shop/dashboard', shopDashboardRoutes);
 
 // Listen
 app.listen(port, () => {

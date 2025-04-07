@@ -161,7 +161,6 @@ exports.getOrderByOrderId = async (req, res) => {
       return
     }
 
-    // Fetch product details for each cart item and calculate the total price
     const cartItemsWithDetails = await Promise.all(response.map(async (item) => {
       const product = await Product.getByProductId(item.productId);
       return {

@@ -134,7 +134,6 @@ class Shop {
   }
 
   static async getCustomers(shopId, filters = {}) {
-    console.log(filters, 'filters');
     let query = `SELECT * FROM users WHERE role != ?`; // Always exclude admin users
     const params = ['Admin']; // Always exclude 'Admin'
 
