@@ -92,7 +92,13 @@ exports.getProductByShopIdAndProductId = async (req, res) => {
     }
 
     const product = await Shop.getProductByShopIdAndProductId(shopId, productId);
-    res.status(200).json(product);
+    const variants = await Shop.getProductPriceVariants(productId);
+
+    const result = {
+      ...product,
+      variants: variants.length ? variants : []
+    }
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -101,8 +107,22 @@ exports.getProductByShopIdAndProductId = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const product = req.body;
+
+    // Insert into products table
     const productId = await Shop.create(product);
-    res.status(201).json(productId);
+    // Insert into product_price_variants table if variants exist
+    if (productId && product.variants && product.variants.length > 0) {
+      for (const variant of product.variants) {
+        await Shop.createPriceVariant({
+          productId: productId,
+          variantName: variant.name,
+          additionalPrice: variant.additionalPrice,
+          stock: variant.stock
+        });
+      }
+    }
+
+    res.status(201).json({ id: productId });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

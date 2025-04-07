@@ -58,10 +58,65 @@ class Product {
   }
 
   static async create(product) {
-    const [result] = await db.query(`INSERT INTO products (name, description, price, rating, brand) VALUES (?, ?, ?, ?, ?)`,
-      [product.name, product.description, product.price, product.rating, product.brand]);
+    const [result] = await db.query(
+      `INSERT INTO products 
+        (sku, brand, brandId, description, tags, warrantyInformation, imageUrl, price, discountPrice, productName, 
+         metaTitle, metaDescription, productQuantity, stockStatus, visibility, weight, length, width, height, 
+         rating, reviewsCount, averageReviewRating, uniqueName, categoryId, shopId, supplierId, taxClass, 
+         shippingClass, priceVariantId)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        product.sku,
+        product.brand,
+        product.brandId,
+        product.description,
+        product.tags,
+        product.warrantyInformation,
+        product.imageUrl,
+        product.price,
+        product.discountPrice,
+        product.productName,
+        product.metaTitle,
+        product.metaDescription,
+        product.productQuantity,
+        product.stockStatus,
+        product.visibility,
+        product.weight,
+        product.length,
+        product.width,
+        product.height,
+        product.rating,
+        product.reviewsCount,
+        product.averageReviewRating,
+        product.uniqueName,
+        product.categoryId,
+        product.shopId,
+        product.supplierId,
+        product.taxClass,
+        product.shippingClass,
+        product.priceVariantId,
+      ]
+    );
+
     return result.insertId;
   }
+
+  static async createPriceVariant(variant) {
+    const [result] = await db.query(
+      `INSERT INTO product_price_variants 
+        (productId, variantName, additionalPrice, stock, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, NOW(), NOW())`,
+      [
+        variant.productId,
+        variant.variantName,
+        variant.additionalPrice,
+        variant.stock
+      ]
+    );
+
+    return result.insertId;
+  }
+
 
   static async deleteById(id) {
     const [result] = await db.query(`DELETE FROM products WHERE id = ?`, [id]);

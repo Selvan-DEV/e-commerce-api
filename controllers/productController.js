@@ -78,7 +78,21 @@ exports.getProductDetail = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const product = req.body;
-    const productId = await Product.addProductToCart(product);
+
+    // Insert into products table
+    const productId = await Product.create(product);
+    // Insert into product_price_variants table if variants exist
+    if (productId && product.variants && product.variants.length > 0) {
+      for (const variant of product.variants) {
+        await Product.createPriceVariant({
+          productId: productId,
+          variantName: variant.name,
+          additionalPrice: variant.additionalPrice,
+          stock: variant.stock
+        });
+      }
+    }
+
     res.status(201).json({ id: productId });
   } catch (error) {
     res.status(500).json({ error: error.message });
