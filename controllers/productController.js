@@ -38,7 +38,7 @@ exports.getCategoriesAndProducts = async (_req, res) => {
 
     for (const item of products) {
       // Fetch category details for each product
-      const category = await Product.getCategoryById(item.id);
+      const category = await Product.getCategoryById(item.categoryId);
 
       if (!categoryMap.has(category.categoryId)) {
         categoryMap.set(category.categoryId, {

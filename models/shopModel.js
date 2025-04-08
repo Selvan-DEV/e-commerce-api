@@ -48,8 +48,8 @@ class Shop {
           (sku, brand, brandId, description, tags, warrantyInformation, imageUrl, price, discountPrice, productName, 
            metaTitle, metaDescription, productQuantity, stockStatus, visibility, weight, length, width, height, 
            rating, reviewsCount, averageReviewRating, uniqueName, categoryId, shopId, supplierId, taxClass, 
-           shippingClass, ingredients)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           shippingClass, ingredients, offerPrice, offerStartDate, offerEndDate)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         product.sku,
         product.brand,
@@ -79,6 +79,10 @@ class Shop {
         product.supplierId,
         product.taxClass,
         product.shippingClass,
+        product.ingredients,
+        product.offerPrice,
+        product.offerStartDate,
+        product.offerEndDate,
       ]
     );
 
@@ -102,49 +106,80 @@ class Shop {
   }
 
   static async updateProduct(product) {
-    const [result] = await db.query(`
+    const [result] = await db.query(
+      `
       UPDATE products
-      SET productName = ?,
-          productQuantity = ?,
-          description = ?,
-          price = ?,
-          rating = ?,
-          brand = ?,
-          uniqueName = ?,
-          categoryId = ?,
-          shopId = ?,
-          sku = ?,
-          tags = ?,
-          warrantyInformation = ?,
-          metaTitle = ?,
-          metaDescription = ?,
-          stockStatus = ?,
-          weight = ?,
-          height = ?
+      SET 
+        sku = ?,
+        productName = ?,
+        description = ?,
+        productQuantity = ?,
+        price = ?,
+        offerPrice = ?,
+        offerStartDate = ?,
+        offerEndDate = ?,
+        metaTitle = ?,
+        metaDescription = ?,
+        imageUrl = ?,
+        height = ?,
+        brand = ?,
+        brandId = ?,
+        stockStatus = ?,
+        categoryId = ?,
+        ingredients = ?,
+        updatedAt = NOW()
       WHERE id = ?
-    `,
+      `,
       [
-        product.productName,
-        product.productQuantity,
-        product.description,
-        product.price,
-        product.rating,
-        product.brand,
-        product.uniqueName,
-        product.categoryId,
-        product.shopId,
         product.sku,
-        product.tags,
-        product.warrantyInformation,
+        product.productName,
+        product.description,
+        product.productQuantity,
+        product.price,
+        product.offerPrice,
+        product.offerStartDate,
+        product.offerEndDate,
         product.metaTitle,
         product.metaDescription,
-        product.stockStatus,
-        product.weight,
+        product.imageUrl,
         product.height,
-        product.id // Assuming 'id' is the primary key
+        product.brand,
+        product.brandId,
+        product.stockStatus,
+        product.categoryId,
+        product.ingredients,
+        product.id
       ]
     );
 
+    return result.affectedRows;
+  }
+
+  static async updateProductVariant(variant) {
+    const [result] = await db.query(
+      `
+      UPDATE product_price_variants
+      SET 
+        variantName = ?,
+        additionalPrice = ?,
+        stock = ?,
+        updatedAt = NOW()
+      WHERE variantsId = ?
+      `,
+      [
+        variant.variantName,
+        variant.additionalPrice,
+        variant.stock,
+        variant.variantsId
+      ]
+    );
+
+    return result.affectedRows;
+  }
+
+  static async deleteVariantsByProductId(productId) {
+    const sql = "DELETE FROM product_price_variants WHERE productId = ?";
+    const [result] = await db.execute(sql, [productId]);
     return result.affectedRows;
   }
 

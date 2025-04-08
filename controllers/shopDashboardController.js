@@ -11,7 +11,7 @@ exports.getRecentOrders = async (req, res) => {
     const orders = await ShopDashboardModel.getRecentOrders(shopId);
 
     if (!orders.length) {
-      res.status(404).json({ message: "No Order Found" });
+      return res.status(204).json({ message: "No Order Found" });
     }
 
     const ordersWithProucts = await Promise.all(orders.map(async (order) => {

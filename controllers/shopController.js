@@ -9,6 +9,10 @@ exports.getDashboardSummaryCards = async (req, res) => {
     }
 
     const orders = await Shop.getOrdersByShopId(shopId);
+    if (!orders.length) {
+      return res.status(204).json({ message: "No Order Found" });
+    }
+
     const customers = await Shop.getCustomers(shopId);
     const ordersWithStatus = await Promise.all(orders.map(async (item) => {
       const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
@@ -33,7 +37,7 @@ exports.getDashboardSummaryCards = async (req, res) => {
 
       return res.status(200).json(result);
     } else {
-      return res.status(404).json({ message: 'No Orders Found' });
+      return res.status(204).json({ message: 'No Orders Found' });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -115,7 +119,7 @@ exports.addProduct = async (req, res) => {
       for (const variant of product.variants) {
         await Shop.createPriceVariant({
           productId: productId,
-          variantName: variant.name,
+          variantName: variant.variantName,
           additionalPrice: variant.additionalPrice,
           stock: variant.stock
         });
@@ -131,12 +135,27 @@ exports.addProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const product = req.body;
+
+    // 1. Update main product info
     const productId = await Shop.updateProduct(product);
-    res.status(201).json(productId);
+
+    // 2. Remove all existing variants for the product
+    await Shop.deleteVariantsByProductId(product.id);
+
+    // 3. Insert new variants
+    if (product && product.variants && product.variants.length > 0) {
+      for (const variant of product.variants) {
+        variant.productId = product.id;
+        await Shop.createPriceVariant(variant);
+      }
+    }
+
+    res.status(201).json({ id: productId });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.getCategoriesByShopId = async (req, res) => {
   try {
