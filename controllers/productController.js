@@ -66,7 +66,13 @@ exports.getProductDetail = async (req, res) => {
   try {
     const product = await Product.getByProductName(req.params.productName);
     if (product) {
-      res.status(200).json(product);
+      const productVariants = await Product.getByProductVariants(product.id);
+      const result = {
+        ...product,
+        variants: productVariants.length ? productVariants : []
+      }
+
+      res.status(200).json(result);
     } else {
       res.status(404).json({ message: 'Product not found' });
     }

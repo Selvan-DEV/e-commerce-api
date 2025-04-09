@@ -47,6 +47,11 @@ class Product {
     return rows[0];
   }
 
+  static async getByProductVariants(productId) {
+    const [rows] = await db.query(`SELECT * FROM product_price_variants WHERE productId = ?`, [productId]);
+    return rows;
+  }
+
   static async getByProductId(productId) {
     const [rows] = await db.query(`SELECT * FROM products WHERE id = ?`, [productId]);
     return rows[0];
