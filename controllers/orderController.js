@@ -95,6 +95,7 @@ exports.deleteCartItem = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   const responseBody = req.body;
+  const io = req.io;
 
   try {
     // Create the order
@@ -117,6 +118,14 @@ exports.createOrder = async (req, res) => {
       // Delete items from cart after successful order item insertion
       await Order.deleteCartItemsByUserId(responseBody.userId);
     }
+
+    const newOrder = {
+      id: createOrderResponse.affectedRows,
+    };
+
+    // Emit to all clients
+    io.emit('orderUpdate', newOrder);
+
 
     // Respond with the created order
     res.status(201).json(createOrderResponse);
