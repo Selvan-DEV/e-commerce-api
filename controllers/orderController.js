@@ -41,7 +41,7 @@ exports.getAllCartItemsBySessionId = async (req, res) => {
     const cartItems = await Order.getAllCartItemsBySessionId(cartItemId);
 
     if (!cartItems.length) {
-      return res.status(404).json({ message: 'No cart items found for the given Cart Item ID' });
+      return res.status(204).json({ message: 'No cart items found for the given Cart Item ID' });
     }
 
     // Fetch product details for each cart item and calculate the total price

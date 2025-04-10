@@ -117,3 +117,24 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+exports.createReview = async (req, res) => {
+  try {
+
+    const reviewData = req.body;
+
+    const reviewId = await Product.insertReview(reviewData);
+    if (!reviewId) {
+      return res.status(500).json({ message: "Faild to insert a review" })
+    }
+
+    const isUpdated = await Product.updateAverageRating(reviewData.productId);
+    if (!isUpdated) {
+      return res.status(500).json({ message: "Faild to update average ratings" })
+    }
+
+    res.status(201).json({ id: reviewId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

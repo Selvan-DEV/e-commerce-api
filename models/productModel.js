@@ -127,6 +127,27 @@ class Product {
     const [result] = await db.query(`DELETE FROM products WHERE id = ?`, [id]);
     return result.affectedRows;
   }
+
+  static async insertReview(reviewData) {
+    const [result] = await db.query(
+      `INSERT INTO reviews (productId, userId, rating, comment) VALUES (?, ?, ?, ?)`,
+      [reviewData.productId, reviewData.userId, reviewData.rating, reviewData.comment || null]
+    );
+
+    return result.insertId;
+  }
+
+  static async updateAverageRating(productId) {
+    const [result] = await db.query(
+      `UPDATE products
+       SET averageRating = (SELECT AVG(rating) FROM reviews WHERE productId = ?),
+           reviewCount = (SELECT COUNT(*) FROM reviews WHERE productId = ?)
+       WHERE id = ?`,
+      [productId, productId, productId]
+    );
+
+    return result.affectedRows;
+  }
 }
 
 module.exports = Product;
