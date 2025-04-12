@@ -4,7 +4,7 @@ const orderController = require('../controllers/orderController');
 
 router.post('/addOrUpdateProductToCart', orderController.addProductToCart);
 router.get('/cartItems/:cartItemId', orderController.getAllCartItemsBySessionId);
-router.put('/updateCartItem', orderController.udateCartItem);
+router.put('/updateCartItem', orderController.updateCartItem);
 router.delete('/deleteCartItems/:cartItemId', orderController.deleteCartItem);
 
 router.post('/:userId/createOrder', orderController.createOrder);

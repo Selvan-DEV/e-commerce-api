@@ -69,7 +69,7 @@ exports.getAllCartItemsBySessionId = async (req, res) => {
   }
 };
 
-exports.udateCartItem = async (req, res) => {
+exports.updateCartItem = async (req, res) => {
   try {
     const { quantity, cartItemId } = req.body;
     const response = await Order.updateCartItem(quantity, cartItemId);
