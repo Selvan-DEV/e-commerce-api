@@ -1,6 +1,10 @@
 const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 const Shop = require('../models/shopModel');
+const fs = require("fs");
+const { sendEmailWithAttachment } = require('../utils/emailService');
+const { generateInvoicePDF } = require('../utils/invoiceGenerator');
+
 const { v4: uuidv4 } = require('uuid');
 
 exports.addProductToCart = async (req, res) => {
@@ -97,41 +101,86 @@ exports.createOrder = async (req, res) => {
   const responseBody = req.body;
   const io = req.io;
 
+  let pdfPath = null;
+
   try {
-    // Create the order
+    // Step 1: Create order
     const createOrderResponse = await Order.createOrder(responseBody);
+    const orderId = createOrderResponse.insertId;
 
-    if (createOrderResponse.insertId > 0 && responseBody.cartItem) {
-      // Prepare the order items
-      const orderItems = responseBody.cartItem.cartItems.map((element) => {
-        return {
-          orderId: createOrderResponse.insertId,
-          productId: element.productId,
-          quantity: element.quantity,
-          price: element.price,
-        };
-      });
+    if (orderId > 0 && responseBody.cartItem) {
+      const orderItems = responseBody.cartItem.cartItems.map((item) => ({
+        orderId,
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+      }));
 
-      // Insert all order items concurrently
-      await Promise.all(orderItems.map(item => Order.addOrderItems(item)));
-
-      // Delete items from cart after successful order item insertion
+      await Promise.all(orderItems.map((item) => Order.addOrderItems(item)));
       await Order.deleteCartItemsByUserId(responseBody.userId);
     }
 
-    const newOrder = {
-      id: createOrderResponse.affectedRows,
+    // Step 2: Broadcast order
+    io.emit("orderUpdate", { id: createOrderResponse.affectedRows });
+
+    // Step 3: Prepare invoice data
+    const invoiceData = {
+      invoiceId: `Invoice-${orderId}`,
+      date: new Date().toLocaleDateString(),
+      customerName: responseBody.name || "Customer",
+      customerEmail: responseBody.toEmailAddress,
+      items: responseBody.cartItem.cartItems,
+      total: responseBody.orderAmount,
     };
 
-    // Emit to all clients
-    io.emit('orderUpdate', newOrder);
+    pdfPath = await generateInvoicePDF(invoiceData);
 
+    // Step 4: Email content
+    const customerEmailOptions = {
+      to: invoiceData.customerEmail,
+      subject: "Your Order Confirmation - MyShop",
+      text: "Thank you for your purchase! Please find your invoice attached.",
+      attachments: [
+        {
+          filename: "invoice.pdf",
+          path: pdfPath,
+        },
+      ],
+    };
 
-    // Respond with the created order
-    res.status(201).json(createOrderResponse);
+    const adminEmailOptions = {
+      to: "selvan894050@gmail.com",
+      subject: `New Order Received - ${invoiceData.invoiceId}`,
+      text: `A new order has been placed by ${invoiceData.customerEmail}.`,
+      attachments: [
+        {
+          filename: "invoice.pdf",
+          path: pdfPath,
+        },
+      ],
+    };
+
+    // Step 5: Send both emails
+    await Promise.all([
+      sendEmailWithAttachment(customerEmailOptions),
+      sendEmailWithAttachment(adminEmailOptions),
+    ]);
+
+    // Step 6: Clean up invoice file
+    fs.unlink(pdfPath, (err) => {
+      if (err) console.error("Failed to delete invoice:", err);
+    });
+
+    return res.status(201).json(createOrderResponse);
   } catch (error) {
-    // Log the error and respond with a 500 status code
-    res.status(500).json({ error: error.message });
+    console.error("Order creation failed:", error);
+
+    // Delete the PDF if it was generated
+    if (pdfPath && fs.existsSync(pdfPath)) {
+      fs.unlinkSync(pdfPath);
+    }
+
+    return res.status(500).json({ error: "Order creation failed. Please try again." });
   }
 };
 
