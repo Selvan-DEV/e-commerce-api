@@ -173,8 +173,6 @@ exports.createOrder = async (req, res) => {
 
     return res.status(201).json(createOrderResponse);
   } catch (error) {
-    console.error("Order creation failed:", error);
-
     // Delete the PDF if it was generated
     if (pdfPath && fs.existsSync(pdfPath)) {
       fs.unlinkSync(pdfPath);
