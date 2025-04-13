@@ -178,7 +178,7 @@ exports.createOrder = async (req, res) => {
       fs.unlinkSync(pdfPath);
     }
 
-    return res.status(500).json({ error: "Order creation failed. Please try again." });
+    return res.status(500).json({ error: error.message });
   }
 };
 
