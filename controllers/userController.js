@@ -5,7 +5,7 @@ const Order = require('../models/orderModel');
 
 exports.registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, phoneNumber, password } = req.body;
+    const { firstName, lastName, email, phoneNumber, password, role } = req.body;
 
     // Encrypt the password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -17,7 +17,8 @@ exports.registerUser = async (req, res) => {
       phoneNumber,
       isPrimaryUser: false,
       isActive: true,
-      password: hashedPassword
+      password: hashedPassword,
+      role
     });
 
     res.status(201).json(user);

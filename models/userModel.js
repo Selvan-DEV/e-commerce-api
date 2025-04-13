@@ -2,11 +2,11 @@ const db = require('../config/database');
 
 class User {
   static async createUser(userData) {
-    const { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password } = userData;
+    const { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role } = userData;
     const [result] = await db.query(`
-            INSERT INTO users (firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password]);
+            INSERT INTO users (firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role]);
     return result.insertId;
   }
 
