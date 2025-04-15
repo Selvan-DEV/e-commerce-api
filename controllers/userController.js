@@ -119,10 +119,15 @@ exports.getUserAddresses = async (req, res) => {
 exports.getActiveAddressByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is Required" })
+    }
     const addresses = await User.getActiveAddressByUserId(userId);
 
     if (addresses.length > 0) {
-      res.status(200).json(addresses[0]);
+      return res.status(200).json(addresses[0]);
+    } else {
+      return res.status(204).json({ message: "No active address found for the logged in user" });
     }
 
   } catch (error) {
@@ -207,5 +212,43 @@ exports.forgotPassword = async (req, res) => {
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+
+exports.validateCoupon = async (req, res) => {
+  const { code, userId } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ error: 'Coupon code is required.' });
+  }
+
+  try {
+    const coupon = await User.getCoupon(code);
+    if (!coupon) {
+      return res.status(404).json({ error: 'Invalid or expired coupon code.' });
+    }
+
+    // Check if coupon is user-specific
+    if (coupon.userId && coupon.userId !== userId) {
+      return res.status(403).json({ error: 'Coupon not valid for this user.' });
+    }
+
+    // Check if usage limit reached
+    if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+      return res.status(410).json({ error: 'Coupon usage limit reached.' });
+    }
+
+
+    return res.status(200).json({
+      message: 'Coupon is valid.',
+      discount: {
+        type: coupon.type,
+        value: coupon.value
+      }
+    });
+  } catch (error) {
+    console.error('Error validating coupon:', err);
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 };

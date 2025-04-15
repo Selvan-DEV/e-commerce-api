@@ -18,5 +18,9 @@ router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser);
 router.post('/forgot-password', userController.forgotPassword);
 
+/** Coupons */
+router.post('/validate-coupon', userController.validateCoupon);
+/** End */
+
 
 module.exports = router;

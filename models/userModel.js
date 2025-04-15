@@ -51,20 +51,20 @@ class User {
   }
 
   static async addUserAddress(userId, address) {
-    const { name, phoneNumber, pincode, locality, address: addr, city, state, landmark, alternatePhoneNumber, addressType } = address;
+    const { firstName, lastName, phoneNumber, pincode, locality, address: addr, city, state, landmark, alternatePhoneNumber, addressType } = address;
     const [result] = await db.query(`
-            INSERT INTO user_addresses (userId, name, phoneNumber, pincode, locality, address, city, state, landmark, alternatePhoneNumber, addressType)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, name, phoneNumber, pincode, locality, addr, city, state, landmark, alternatePhoneNumber, addressType]);
+            INSERT INTO user_addresses (userId, firstName, lastName, phoneNumber, pincode, locality, address, city, state, landmark, alternatePhoneNumber, addressType)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, firstName, lastName, phoneNumber, pincode, locality, addr, city, state, landmark, alternatePhoneNumber, addressType]);
     return result.insertId;
   }
 
   static async updateUserAddress(addressId, address) {
-    const { name, phoneNumber, pincode, locality, address: addr, city, state, landmark, alternatePhoneNumber, addressType, isActiveAddress } = address;
+    const { firstName, lastName, phoneNumber, pincode, locality, address: addr, city, state, landmark, alternatePhoneNumber, addressType, isActiveAddress } = address;
     const [result] = await db.query(`
-            UPDATE user_addresses SET name = ?, phoneNumber = ?, pincode = ?, locality = ?, address = ?, city = ?, state = ?, landmark = ?, alternatePhoneNumber = ?, addressType = ?, isActiveAddress = ?
+            UPDATE user_addresses SET firstName = ?, lastName = ?, phoneNumber = ?, pincode = ?, locality = ?, address = ?, city = ?, state = ?, landmark = ?, alternatePhoneNumber = ?, addressType = ?, isActiveAddress = ?
             WHERE addressId = ?`,
-      [name, phoneNumber, pincode, locality, addr, city, state, landmark, alternatePhoneNumber, addressType, isActiveAddress, addressId]);
+      [firstName, lastName, phoneNumber, pincode, locality, addr, city, state, landmark, alternatePhoneNumber, addressType, isActiveAddress, addressId]);
     return result.affectedRows;
   }
 
@@ -86,6 +86,11 @@ class User {
   static async updatePassword(userId, hashedPassword) {
     const [result] = await db.query('UPDATE users SET password = ? WHERE userId = ?', [hashedPassword, userId]);
     return result;
+  }
+
+  static async getCoupon(code) {
+    const [rows] = await db.query(`SELECT * FROM coupons WHERE code = ? AND isActive = TRUE AND expiryDate > NOW()`, [code]);
+    return rows[0];
   }
 }
 
