@@ -4,16 +4,16 @@ class User {
   static async createUser(userData) {
     const { firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role } = userData;
     const [result] = await db.query(`
-            INSERT INTO users (firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role]);
+            INSERT INTO users (firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role, shopId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [firstName, lastName, email, phoneNumber, isPrimaryUser, isActive, password, role, 1]);
     return result.insertId;
   }
 
-  static async findUserByEmailOrPhone(email, phoneNumber) {
+  static async findUserByEmailAndRole(email) {
     const [rows] = await db.query(`
-        SELECT * FROM users WHERE (email = ? OR phoneNumber = ?) AND role = ?`,
-      [email, phoneNumber]
+        SELECT * FROM users WHERE email = ? AND role IN ('Guest', 'Customer')`,
+      [email]
     );
     return rows[0];
   }
@@ -91,6 +91,11 @@ class User {
   static async getCoupon(code) {
     const [rows] = await db.query(`SELECT * FROM coupons WHERE code = ? AND isActive = TRUE AND expiryDate > NOW()`, [code]);
     return rows[0];
+  }
+
+  static async getUserAddressesByIds(shippingAddressId, billingAddressId) {
+    const [rows] = await db.query(`SELECT * FROM user_addresses WHERE addressId IN (?, ?)`, [shippingAddressId, billingAddressId]);
+    return rows;
   }
 }
 

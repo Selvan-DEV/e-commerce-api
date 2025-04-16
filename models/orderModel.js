@@ -20,7 +20,7 @@ class Order {
   }
 
   static async updateCartUserId(userId, sessionId) {
-    const [result] = await db.query(`UPDATE cartitems SET userId = ? WHERE sessionId = ?`, [userId, sessionId]);
+    const [result] = await db.query(`UPDATE cartitems SET userId = ? WHERE sessionId = ? `, [userId, sessionId]);
     return result.affectedRows;
   }
 
@@ -35,8 +35,8 @@ class Order {
   }
 
   static async createOrder(orderItem) {
-    const [result] = await db.query(`INSERT INTO orders (userId, paymentMethodId, orderAmount, deliveryAddressId, shippingAddressId, shopId, orderStatus) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [orderItem.userId, orderItem.paymentMethodId, orderItem.orderAmount, orderItem.deliveryAddressId, orderItem.shippingAddressId, orderItem.shopId, orderItem.orderStatusId]);
+    const [result] = await db.query(`INSERT INTO orders (userId, paymentMethodId, orderAmount, billingAddressId, shippingAddressId, shopId, orderStatus) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [orderItem.userId, orderItem.paymentMethodId, orderItem.orderAmount, orderItem.billingAddressId, orderItem.shippingAddressId, orderItem.shopId, orderItem.orderStatusId]);
     return result;
   }
 
@@ -63,6 +63,35 @@ class Order {
   static async getOrderByOrderId(orderId) {
     const [rows] = await db.query(`SELECT * FROM orderitems WHERE orderId = ?`, [orderId]);
     return rows;
+  }
+
+  static async insertCheckoutSession(data) {
+    const { userId,
+      shippingAddressId,
+      billingAddressId,
+      discountCode,
+      discountValue,
+      deliveryCharge,
+      totalPrice,
+      finalAmount } = data;
+
+    const [rows] = await db.query(`INSERT INTO checkout_sessions (userId, shippingAddressId, billingAddressId, discountCode, discountValue, deliveryCharge, totalPrice, finalAmount, paymentStatus)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`, [
+      userId,
+      shippingAddressId,
+      billingAddressId,
+      discountCode || null,
+      discountValue,
+      deliveryCharge,
+      totalPrice,
+      finalAmount
+    ]);
+    return rows.insertId;
+  }
+
+  static async getCheckoutSessionData(id) {
+    const [rows] = await db.query(`SELECT * FROM checkout_sessions WHERE id = ?`, [id]);
+    return rows[0];
   }
 }
 

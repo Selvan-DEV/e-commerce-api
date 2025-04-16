@@ -230,9 +230,9 @@ exports.validateCoupon = async (req, res) => {
     }
 
     // Check if coupon is user-specific
-    if (coupon.userId && coupon.userId !== userId) {
-      return res.status(403).json({ error: 'Coupon not valid for this user.' });
-    }
+    // if (coupon.userId && coupon.userId !== userId) {
+    //   return res.status(403).json({ error: 'Coupon not valid for this user.' });
+    // }
 
     // Check if usage limit reached
     if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
