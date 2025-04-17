@@ -202,9 +202,11 @@ class Shop {
       params.push(filters.status);
     }
 
+    query += ` ORDER BY orderId DESC`;
     const [rows] = await db.query(query, params);
     return rows;
   }
+
 
   static async getCustomers(shopId, filters = {}) {
     let query = `SELECT * FROM users WHERE role != ?`; // Always exclude admin users

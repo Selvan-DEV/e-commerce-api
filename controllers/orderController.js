@@ -5,6 +5,7 @@ const Shop = require('../models/shopModel');
 const fs = require("fs");
 const { sendEmailWithAttachment } = require('../utils/emailService');
 const { generateInvoicePDF } = require('../utils/invoiceGenerator');
+const { generateOrdersCSV } = require('../utils/csvGenerator');
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -378,5 +379,68 @@ exports.getCheckoutSessionById = async (req, res) => {
   } catch (error) {
     console.error('Error fetching checkout session:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+exports.exportOrdersCsv = async (req, res) => {
+  console.log(res, 'res')
+  try {
+    // const orders = await getOrdersWithStatus("Order Received");
+    const ordersMock = [
+      {
+        orderNumber: "ORD123456",
+        transportMode: "Air",
+        paymentMode: "Prepaid",
+        codAmount: 0,
+        customerName: "Manikanda",
+        phone: "9876543210",
+        email: "mani@example.com",
+        shippingAddress: {
+          address: "12B, Indira Nagar",
+          apartment: "Near Metro",
+          city: "Bangalore",
+          state: "Karnataka",
+          pincode: "560038"
+        },
+        billingAddress: {
+          address: "45A, MG Road",
+          apartment: "Suite 5",
+          city: "Bangalore",
+          state: "Karnataka",
+          pincode: "560001"
+        },
+        products: [
+          {
+            skuCode: "SKU001",
+            skuName: "Protein Bar",
+            quantity: 3,
+            price: 150
+          },
+          {
+            skuCode: "SKU002",
+            skuName: "Whey Protein",
+            quantity: 1,
+            price: 1200
+          }
+        ],
+        sellerInfo: {
+          name: "FitMart",
+          gst: "29ABCDE1234F2Z5",
+          addressLine1: "88, Health Street",
+          addressLine2: "Warehouse Zone",
+          city: "Bangalore",
+          state: "Karnataka",
+          pincode: "560010"
+        }
+      }
+    ];
+    const csvData = await generateOrdersCSV(ordersMock);
+    res.setHeader("Content-Disposition", "attachment; filename=orders.csv");
+    res.setHeader("Content-Type", "text/csv");
+    res.status(200).send(csvData);
+  } catch (error) {
+    console.error("CSV Export Failed:", error);
+    res.status(500).json({ message: "Failed to export orders" });
   }
 }

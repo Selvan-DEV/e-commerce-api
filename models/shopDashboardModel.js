@@ -4,18 +4,18 @@ const { formatDateToMySQL } = require('../lib/DateFormatter');
 class ShopDashboardModel {
   static async getRecentOrders(shopId) {
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    // const startOfToday = new Date();
+    // startOfToday.setHours(0, 0, 0, 0);
 
-    const startOfTomorrow = new Date(startOfToday);
-    startOfTomorrow.setDate(startOfToday.getDate() + 1);
+    // const startOfTomorrow = new Date(startOfToday);
+    // startOfTomorrow.setDate(startOfToday.getDate() + 1);
 
-    const todayFormatted = formatDateToMySQL(startOfToday);
-    const tomorrowFormatted = formatDateToMySQL(startOfTomorrow);
+    // const todayFormatted = formatDateToMySQL(startOfToday);
+    // const tomorrowFormatted = formatDateToMySQL(startOfTomorrow);
 
     const [rows] = await db.query(
-      `SELECT * FROM orders WHERE shopId = ? AND createdAt >= ? AND createdAt < ? ORDER BY createdAt DESC`,
-      [shopId, todayFormatted, tomorrowFormatted]
+      `SELECT * FROM orders WHERE shopId = ? AND orderStatus = 1 ORDER BY createdAt DESC`,
+      [shopId]
     );
     return rows;
   }

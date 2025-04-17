@@ -7,6 +7,7 @@ router.get('/cartItems/:cartItemId', orderController.getAllCartItemsBySessionId)
 router.put('/updateCartItem', orderController.updateCartItem);
 router.delete('/deleteCartItems/:cartItemId', orderController.deleteCartItem);
 
+router.get('/export-order', orderController.exportOrdersCsv);
 router.post('/checkout-session', orderController.createCheckoutSession);
 router.get('/checkout-session/:checkoutSessionId', orderController.getCheckoutSessionById);
 router.post('/:userId/createOrder', orderController.createOrder);

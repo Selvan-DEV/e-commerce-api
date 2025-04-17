@@ -15,19 +15,25 @@ exports.getRecentOrders = async (req, res) => {
 
     const ordersWithProucts = await Promise.all(orders.map(async (order) => {
       const orderStatus = await Shop.getOrderStatusById(Number(order.orderStatus));
-      const billingAddress = await ShopDashboardModel.getAddressById(order.shippingAddressId);
-      const deliveryAddress = await ShopDashboardModel.getAddressById(order.deliveryAddressId);
+      const billingAddress = await ShopDashboardModel.getAddressById(order.billingAddressId);
+      const deliveryAddress = await ShopDashboardModel.getAddressById(order.shippingAddressId);
       const orderItems = await ShopDashboardModel.getOrderByOrderId(order.orderId);
+
       const products = await Promise.all(orderItems.map(async (orderItem) => {
-        return await ShopDashboardModel.getByProductId(orderItem.productId);
+        const product = await ShopDashboardModel.getByProductId(orderItem.productId);
+        return {
+          productId: product.id,
+          productName: product.productName,
+          orderQuantity: orderItem.quantity
+        };
       }));
 
       return {
         ...order,
         orderStatus: orderStatus.orderStatusName,
-        billingAddress: billingAddress ? billingAddress : null,
-        deliveryAddress: deliveryAddress ? deliveryAddress : null,
-        products: products.map((product) => ({ productId: product.id, productName: product.productName }))
+        billingAddress: billingAddress || null,
+        deliveryAddress: deliveryAddress || null,
+        products
       };
     }));
 
