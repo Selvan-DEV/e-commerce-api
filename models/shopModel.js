@@ -257,6 +257,41 @@ class Shop {
     const [rows] = await db.query(`UPDATE orders set orderStatus = ? where orderId = ?`, [orderStatusId, orderId]);
     return rows.affectedRows;
   }
+
+  static async getAllCouponsByShopId(shopId) {
+    const [rows] = await db.query(`SELECT * FROM coupons WHERE ShopId = ?`, [shopId]);
+    return rows;
+  }
+
+  static async getCouponById(shopId, couponId) {
+    const [rows] = await db.query(`SELECT * FROM coupons WHERE ShopId = ? AND id = ?`, [shopId, couponId]);
+    return rows[0];
+  }
+
+  static async insertNewCoupon(couponData) {
+    const { code, type, value, expiryDate, usageLimit, userId, shopId } = couponData;
+    const [result] = await db.query(
+      `INSERT INTO coupons (code, type, value, expiryDate, usageLimit, usedCount, isActive, userId, createdAt, updatedAt, ShopId)
+       VALUES (?, ?, ?, ?, ?, 0, 1, ?, NOW(), NOW(), ?)`,
+      [code, type, value, expiryDate, usageLimit, userId, shopId]
+    );
+    return result.insertId;
+  }
+
+  static async updateCoupon(couponData, couponId) {
+    const { code, type, value, expiryDate, usageLimit, userId, shopId } = couponData;
+    const [result] = await db.query(
+      `UPDATE coupons SET code = ?, type = ?, value = ?, expiryDate = ?, usageLimit = ?, userId = ?, updatedAt = NOW(), ShopId = ?
+     WHERE id = ?`,
+      [code, type, value, expiryDate, usageLimit, userId, shopId, couponId]
+    );
+    return result.affectedRows;
+  }
+
+  static async makeCouponInactive(isActive, couponId) {
+    const [rows] = await db.query(`UPDATE coupons SET isActive = ?, updatedAt = NOW() WHERE id = ?`, [isActive ? 1 : 0, couponId]);
+    return rows.affectedRows;
+  }
 }
 
 module.exports = Shop;

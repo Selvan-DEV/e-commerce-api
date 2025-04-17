@@ -34,6 +34,34 @@ class ShopDashboardModel {
     const [rows] = await db.query(`SELECT * FROM user_addresses WHERE addressId = ?`, [addressId]);
     return rows[0];
   }
+
+  static async fetchMonthlyRevenue(shopId) {
+    const [rows] = await db.query(
+      `
+      SELECT 
+        DATE_FORMAT(createdAt, '%Y-%m') as month,
+        SUM(orderAmount) as totalRevenue
+      FROM orders
+      WHERE shopId = ?
+      GROUP BY month
+      ORDER BY month ASC
+      `,
+      [shopId]
+    );
+    return rows;
+  }
+
+  static async getDailyRevenueData(shopId) {
+    const [rows] = await db.query(
+      `SELECT DATE(createdAt) AS date, SUM(orderAmount) AS totalRevenue 
+       FROM orders 
+       WHERE shopId = ? 
+       GROUP BY DATE(createdAt)
+       ORDER BY DATE(createdAt)`,
+      [shopId]
+    );
+    return rows;
+  }
 }
 
 module.exports = ShopDashboardModel;

@@ -351,6 +351,91 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+exports.getAllCoupons = async (req, res) => {
+  const { shopId } = req.params;
+  if (!shopId) {
+    return res.status(400).json({ message: 'ShopId is requried' });
+  }
+
+  try {
+    const allCoupons = await Shop.getAllCouponsByShopId(shopId);
+    if (allCoupons && allCoupons.length) {
+      return res.status(200).json(allCoupons);
+    } else {
+      return res.status(204).json({ message: 'No coupons found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.getCouponById = async (req, res) => {
+  const { shopId, couponId } = req.params;
+  if (!shopId || !couponId) {
+    return res.status(400).json({ message: 'Shop Id and Coupon ID is requried' });
+  }
+
+  try {
+    const couponData = await Shop.getCouponById(shopId, couponId);
+    if (couponData) {
+      return res.status(200).json(couponData);
+    } else {
+      return res.status(204).json({ message: 'No coupon found for the ID' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.createCoupon = async (req, res) => {
+  const couponData = req.body;
+  if (!couponData.shopId) {
+    return res.status(400).json({ message: 'Shop ID is Requried' });
+  }
+
+  try {
+    const insertId = await Shop.insertNewCoupon(couponData);
+    if (insertId) {
+      return res.status(200).json(insertId);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.updateCoupon = async (req, res) => {
+  const couponData = req.body;
+  const { couponId } = req.params;
+  if (!couponData.shopId) {
+    return res.status(400).json({ message: 'Shop ID is Requried' });
+  }
+
+  try {
+    const affectedRows = await Shop.updateCoupon(couponData, couponId);
+    if (affectedRows) {
+      return res.status(200).json(affectedRows);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.updateCouponStatus = async (req, res) => {
+  const { couponId } = req.params;
+  const { isActive } = req.body;
+  if (!couponId) {
+    return res.status(400).json({ message: 'Shop ID is Requried' });
+  }
+
+  try {
+    const affectedRows = await Shop.makeCouponInactive(isActive, couponId);
+    if (affectedRows) {
+      return res.status(200).json(affectedRows);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
 
 // exports.getCategoriesAndProducts = async (_req, res) => {
 //   try {

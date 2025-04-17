@@ -25,6 +25,14 @@ router.get('/:shopId/orders/:orderId', authMiddleware, shopController.getOrderIt
 router.put('/:shopId/orders/updateOrderStatus', authMiddleware, shopController.updateOrderStatus);
 /** End */
 
+/** Coupons Management */
+router.get('/:shopId/coupons', authMiddleware, shopController.getAllCoupons);
+router.get('/:shopId/coupons/:couponId', authMiddleware, shopController.getCouponById);
+router.post('/:shopId/coupons', authMiddleware, shopController.createCoupon);
+router.put('/:shopId/coupons/:couponId/update', authMiddleware, shopController.updateCoupon);
+router.put('/:shopId/coupons/:couponId/update-status', authMiddleware, shopController.updateCouponStatus);
+/** End */
+
 /** Shop Related Common API's  */
 router.get('/orderStatuses', shopController.getOrderStatuses);
 /** End */

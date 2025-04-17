@@ -4,7 +4,7 @@ const Shop = require('../models/shopModel');
 exports.getRecentOrders = async (req, res) => {
   const { shopId } = req.params;
   if (!shopId) {
-    res.status(401).json({ message: "Unautharaized access" })
+    res.status(401).json({ message: "Unautharaized access" });
   }
 
   try {
@@ -44,5 +44,54 @@ exports.getRecentOrders = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getMonthlyRevenue = async (req, res) => {
+  const { shopId } = req.params;
+  if (!shopId) {
+    res.status(401).json({ message: "Unautharaized access" })
+  }
+
+  try {
+    const revenueData = await ShopDashboardModel.fetchMonthlyRevenue(shopId);
+    if (revenueData && revenueData.length) {
+      const monthlyRevenueValues = revenueData.map((row, index) => ({
+        id: index + 1,
+        month: row.month,
+        revenue: Number(row.totalRevenue),
+      }));
+      return res.status(200).json(monthlyRevenueValues);
+    } else {
+      return res.status(204).json({ message: "No content" });
+    }
+  } catch (error) {
+    console.error("Monthly Revenue API Error:", error);
+    res.status(500).json({ message: "Failed to fetch monthly revenue" });
+  }
+};
+
+exports.getDailyRevenue = async (req, res) => {
+  const { shopId } = req.params;
+
+  if (!shopId) {
+    return res.status(400).json({ message: "Missing shopId query param" });
+  }
+
+  try {
+    const revenueData = await ShopDashboardModel.getDailyRevenueData(Number(shopId));
+    if (revenueData && revenueData.length) {
+      const dailyRevenueValues = revenueData.map((row, index) => ({
+        id: index + 1,
+        date: row.date,
+        revenue: Number(row.totalRevenue),
+      }));
+      return res.status(200).json(dailyRevenueValues);
+    } else {
+      return res.status(204).json({ message: "No content" });
+    }
+  } catch (error) {
+    console.error("Failed to fetch daily revenue:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
