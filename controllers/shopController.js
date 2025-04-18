@@ -389,11 +389,13 @@ exports.getCouponById = async (req, res) => {
 
 exports.createCoupon = async (req, res) => {
   const couponData = req.body;
-  if (!couponData.shopId) {
+  const { shopId } = req.params;
+  if (!shopId) {
     return res.status(400).json({ message: 'Shop ID is Requried' });
   }
 
   try {
+    couponData.shopId = shopId;
     const insertId = await Shop.insertNewCoupon(couponData);
     if (insertId) {
       return res.status(200).json(insertId);
@@ -405,8 +407,8 @@ exports.createCoupon = async (req, res) => {
 
 exports.updateCoupon = async (req, res) => {
   const couponData = req.body;
-  const { couponId } = req.params;
-  if (!couponData.shopId) {
+  const { couponId, shopId } = req.params;
+  if (!shopId || !couponId) {
     return res.status(400).json({ message: 'Shop ID is Requried' });
   }
 
