@@ -439,6 +439,53 @@ exports.updateCouponStatus = async (req, res) => {
   }
 }
 
+exports.getAllReviews = async (req, res) => {
+  const { shopId } = req.params;
+  if (!shopId) {
+    return res.status(400).json({ message: "Shop ID is Required" });
+  }
+
+  try {
+    const reviews = await Shop.getAllreviewsByShopId(shopId);
+
+    const reviewsWithProducts = await Promise.all(reviews.map(async (review) => {
+      const product = await Product.getByProductId(review.productId);
+      return {
+        ...review,
+        productName: product.productName,
+        productId: product.id,
+        productSku: product.sku,
+        productImage: product.imageUrl
+      };
+    }));
+
+    if (reviewsWithProducts && reviewsWithProducts.length) {
+      res.status(200).json(reviewsWithProducts);
+    } else {
+      res.status(204).json({ message: "No Reviews Found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.updateReviewStatus = async (req, res) => {
+  const { shopId, reviewId } = req.params;
+  const { isShow } = req.body;
+  if (!shopId || !reviewId) {
+    return res.status(400).json({ message: "Shop ID and Review ID is Required" });
+  }
+
+  try {
+    const affectedRows = await Shop.updateReviewStatus(reviewId, isShow);
+    if (affectedRows) {
+      return res.status(200).json(affectedRows);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 // exports.getCategoriesAndProducts = async (_req, res) => {
 //   try {
 //     const products = await Product.getAllProducts();

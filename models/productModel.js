@@ -122,6 +122,11 @@ class Product {
     return result.insertId;
   }
 
+  static async getVariantById(id) {
+    const [rows] = await db.query(`SELECT * FROM product_price_variants WHERE variantsId = ?`, [id]);
+    return rows[0];
+  }
+
 
   static async deleteById(id) {
     const [result] = await db.query(`DELETE FROM products WHERE id = ?`, [id]);
@@ -130,8 +135,8 @@ class Product {
 
   static async insertReview(reviewData) {
     const [result] = await db.query(
-      `INSERT INTO reviews (productId, userId, rating, comment) VALUES (?, ?, ?, ?)`,
-      [reviewData.productId, reviewData.userId, reviewData.rating, reviewData.comment || null]
+      `INSERT INTO reviews (productId, userId, rating, comment, email, shopId, customerName, isShow) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [reviewData.productId, reviewData.userId, reviewData.rating, reviewData.comment || null, reviewData.email, 1, reviewData.customerName, 1]
     );
 
     return result.insertId;
@@ -147,6 +152,11 @@ class Product {
     );
 
     return result.affectedRows;
+  }
+
+  static async getReviewsByProductId(reviewId) {
+    const [rows] = await db.query(`SELECT * FROM reviews WHERE productId = ? AND isShow = 1`, [reviewId]);
+    return rows;
   }
 }
 

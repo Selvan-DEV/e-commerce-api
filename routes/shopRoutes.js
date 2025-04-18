@@ -33,6 +33,11 @@ router.put('/:shopId/coupons/:couponId/update', authMiddleware, shopController.u
 router.put('/:shopId/coupons/:couponId/update-status', authMiddleware, shopController.updateCouponStatus);
 /** End */
 
+/** Reviews API's */
+router.get('/:shopId/reviews', authMiddleware, shopController.getAllReviews);
+router.put('/:shopId/reviews/:reviewId/update-status', authMiddleware, shopController.updateReviewStatus);
+/** End */
+
 /** Shop Related Common API's  */
 router.get('/orderStatuses', shopController.getOrderStatuses);
 /** End */

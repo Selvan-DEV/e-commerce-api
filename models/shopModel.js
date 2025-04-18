@@ -292,6 +292,16 @@ class Shop {
     const [rows] = await db.query(`UPDATE coupons SET isActive = ?, updatedAt = NOW() WHERE id = ?`, [isActive ? 1 : 0, couponId]);
     return rows.affectedRows;
   }
+
+  static async getAllreviewsByShopId(shopId) {
+    const [rows] = await db.query(`SELECT * FROM reviews WHERE shopId = ? ORDER BY 1 DESC`, [shopId]);
+    return rows;
+  }
+
+  static async updateReviewStatus(reviewId, isShow) {
+    const [rows] = await db.query(`UPDATE reviews SET isShow = ?, updatedAt = NOW() WHERE id = ?`, [isShow, reviewId]);
+    return rows.affectedRows;
+  }
 }
 
 module.exports = Shop;

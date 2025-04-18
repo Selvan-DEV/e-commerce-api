@@ -2,8 +2,8 @@ const db = require('../config/database');
 
 class Order {
   static async addProductToCart(cartItem) {
-    const [result] = await db.query(`INSERT INTO cartitems (productId, quantity, sessionId, userId) VALUES (?, ?, ?, ?)`,
-      [cartItem.productId, cartItem.quantity, cartItem.sessionId, cartItem.userId]);
+    const [result] = await db.query(`INSERT INTO cartitems (productId, quantity, sessionId, userId, variantId) VALUES (?, ?, ?, ?, ?)`,
+      [cartItem.productId, cartItem.quantity, cartItem.sessionId, cartItem.userId, cartItem.variantId]);
 
     const [rows] = await db.query(`SELECT * FROM cartitems WHERE id = ?`, [result.insertId]);
     return rows[0];

@@ -10,6 +10,7 @@ router.delete('/:id', productController.deleteProduct);
 
 // Reviews
 router.post('/review', productController.createReview);
+router.get('/:productId/reviews', productController.getReviewsByProductId);
 
 
 module.exports = router;

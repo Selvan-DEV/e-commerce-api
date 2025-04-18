@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 
 exports.addProductToCart = async (req, res) => {
   try {
-    const { productId, sessionId, quantity, userId } = req.body;
+    const { productId, sessionId, quantity, userId, variantId } = req.body;
 
     if (!productId || !quantity) {
       return res.status(400).json({ message: 'Product ID and quantity are required' });
@@ -53,17 +53,31 @@ exports.getAllCartItemsBySessionId = async (req, res) => {
     // Fetch product details for each cart item and calculate the total price
     const cartItemsWithDetails = await Promise.all(cartItems.map(async (item) => {
       const product = await Product.getByProductId(item.productId);
-      item.price = (item.quantity * product.price).toFixed(2); // Calculate product price based on the quantity
+      // item.price = (item.quantity * product.price).toFixed(2); // Calculate product price based on the quantity
+
+      let unitPrice = product.price;
+
+      // Check if a valid variantId is provided
+      if (item.variantId && item.variantId > 0) {
+        const variant = await Product.getVariantById(item.variantId);
+        if (variant && variant.additionalPrice) {
+          unitPrice = variant.additionalPrice;
+        }
+      }
+
+      const totalPrice = (item.quantity * Number(unitPrice)).toFixed(2);
+
       return {
         ...item,
-        product
+        price: totalPrice,
+        product,
       };
     }));
 
-    // Calculate summary
+    // Calculate summary using the already computed item.price
     const summary = cartItemsWithDetails.reduce((acc, item) => {
       acc.totalQuantity += item.quantity;
-      acc.totalPrice += item.quantity * item.product.price;
+      acc.totalPrice += Number(item.price); // Use the correct calculated price
       return acc;
     }, { totalQuantity: 0, totalPrice: 0 });
 

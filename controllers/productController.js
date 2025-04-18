@@ -1,4 +1,5 @@
 const Product = require('../models/productModel');
+const { sendEmailWithAttachment } = require('../utils/emailService');
 
 exports.getProductList = async (req, res) => {
   try {
@@ -120,12 +121,33 @@ exports.deleteProduct = async (req, res) => {
 
 exports.createReview = async (req, res) => {
   try {
-
     const reviewData = req.body;
 
     const reviewId = await Product.insertReview(reviewData);
     if (!reviewId) {
       return res.status(500).json({ message: "Faild to insert a review" })
+    } else {
+      const product = await Product.getByProductId(reviewData.productId);
+
+      // Format date/time
+      const now = new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      });
+
+      const emailBody = `
+            📢 New Product Review Received!
+            👤 User: ${reviewData.customerName || "Unknown User"}
+            🛍️ Product: ${product?.productName || "Unknown Product"}
+            💬 Comment: ${reviewData.comment}
+            🕒 Date & Time: ${now}`;
+
+      // Send email to admin
+      await sendEmailWithAttachment({
+        to: "selvan894050@gmail.com",
+        subject: "🆕 New Product Review Submitted",
+        text: emailBody,
+        attachments: [],
+      });
     }
 
     const isUpdated = await Product.updateAverageRating(reviewData.productId);
@@ -134,6 +156,25 @@ exports.createReview = async (req, res) => {
     }
 
     res.status(201).json({ id: reviewId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getReviewsByProductId = async (req, res) => {
+
+  const { productId } = req.params;
+  if (!productId) {
+    return res.status(400).json({ message: "Product Id is Requiried" });
+  }
+
+  try {
+    const reviews = await Product.getReviewsByProductId(productId);
+    if (reviews && reviews.length > 0) {
+      res.status(200).json(reviews);
+    } else {
+      res.status(204).json({ message: 'Reviews not found' });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
