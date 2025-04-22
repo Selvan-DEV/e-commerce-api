@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
+import { Constants } from '../constants/constants.js';
 
-export const sendEmailWithAttachment = async ({ to, subject, text, attachments }) => {
+export const sendEmailWithAttachment = async ({ to, subject, text, attachments, html }) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -11,10 +12,11 @@ export const sendEmailWithAttachment = async ({ to, subject, text, attachments }
     });
 
     const mailOptions = {
-      from: `"MyShop" <${process.env.EMAIL_USER}>`,
+      from: `${Constants.STORE_NAME} <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
+      html,
       attachments, // Example: [{ filename: "invoice.pdf", path: "./invoices/invoice.pdf" }]
     };
 

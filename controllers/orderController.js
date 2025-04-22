@@ -6,6 +6,7 @@ const fs = require("fs");
 const { sendEmailWithAttachment } = require('../utils/emailService');
 const { generateInvoicePDF } = require('../utils/invoiceGenerator');
 const { generateOrdersCSV } = require('../utils/csvGenerator');
+const { getOrderConfirmationTemplate } = require('../templates/orderConfirmationEmail');
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -155,7 +156,7 @@ exports.createOrder = async (req, res) => {
     const customerEmailOptions = {
       to: invoiceData.customerEmail,
       subject: "Your Order Confirmation - MyShop",
-      text: "Thank you for your purchase! Please find your invoice attached.",
+      html: getOrderConfirmationTemplate(invoiceData) || "hello",
       attachments: [
         {
           filename: "invoice.pdf",

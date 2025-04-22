@@ -158,6 +158,11 @@ class Product {
     const [rows] = await db.query(`SELECT * FROM reviews WHERE productId = ? AND isShow = 1`, [reviewId]);
     return rows;
   }
+
+  static async getPopularProducts() {
+    const [rows] = await db.query(`SELECT * FROM products WHERE isPopular = 1`);
+    return rows;
+  }
 }
 
 module.exports = Product;

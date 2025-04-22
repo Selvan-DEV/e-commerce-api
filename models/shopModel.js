@@ -302,6 +302,11 @@ class Shop {
     const [rows] = await db.query(`UPDATE reviews SET isShow = ?, updatedAt = NOW() WHERE id = ?`, [isShow, reviewId]);
     return rows.affectedRows;
   }
+
+  static async updatePopularStatus(productId, isPopular) {
+    const [rows] = await db.query(`UPDATE products SET isPopular = ?  WHERE id = ?`, [isPopular, productId]);
+    return rows.affectedRows;
+  }
 }
 
 module.exports = Shop;

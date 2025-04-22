@@ -3,6 +3,9 @@ const Product = require('../models/productModel');
 const Shop = require('../models/shopModel');
 const User = require('../models/userModel');
 const { generateOrdersCSV } = require('../utils/csvGenerator');
+const { sendEmailWithAttachment } = require('../utils/emailService');
+const { getStatusUpdateTemplate } = require('../templates/orderProcessingEmail.js');
+const { Constants } = require('../constants/constants.js');
 
 exports.getDashboardSummaryCards = async (req, res) => {
   try {
@@ -338,6 +341,8 @@ exports.getOrderItemsByOrderId = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res) => {
   const { orderId, orderStatusId } = req.body;
+  let htmlBody = "";
+  let subject = "";
 
   if (!orderId || !orderStatusId) {
     return res.status(400).json({ message: 'ID is Requried' });
@@ -345,7 +350,48 @@ exports.updateOrderStatus = async (req, res) => {
 
   try {
     const isStatusUpdated = await Shop.updateOrderStatus(orderStatusId, orderId);
-    res.status(200).json(isStatusUpdated);
+    if (isStatusUpdated) {
+      const orderStatus = await Shop.getOrderStatusById(orderStatusId);
+      const orderDetails = await Shop.getOrderByOrderId(orderId);
+      const user = await User.getUserById(orderDetails.userId);
+
+      const emailData = {
+        customerName: user.firstName + ' ' + user.lastName,
+        invoiceId: orderId,
+      }
+
+      switch (orderStatus.orderStatusName) {
+        case Constants.ORDER_STATUS.PROCESSING:
+          emailData.statusChangeMessage = Constants.ORDER_STATUS_CHANGE_MESSAGE.PROCESSING;
+          emailData.orderStatusInfo = `Processing Started`;
+          subject = `Your ${Constants.STORE_NAME} Order #${emailData.invoiceId} - Update!`
+          htmlBody = getStatusUpdateTemplate(emailData);
+          break;
+        case Constants.ORDER_STATUS.DISPATCHED:
+          emailData.statusChangeMessage = Constants.ORDER_STATUS_CHANGE_MESSAGE.DISPATCHED;
+          emailData.orderStatusInfo = `Dispatched`;
+          subject = `Your ${Constants.STORE_NAME} Order #${emailData.invoiceId} - Update!`
+          htmlBody = getStatusUpdateTemplate(emailData);
+          break
+        case Constants.ORDER_STATUS.DELIVERED:
+          emailData.statusChangeMessage = Constants.ORDER_STATUS_CHANGE_MESSAGE.DELIVERED;
+          emailData.orderStatusInfo = `Delivered`;
+          subject = `Your ${Constants.STORE_NAME} Order #${emailData.invoiceId} - Update!`
+          htmlBody = getStatusUpdateTemplate(emailData);
+          break
+        default:
+          break;
+      }
+
+      await sendEmailWithAttachment({
+        to: user.email,
+        subject,
+        html: htmlBody,
+        attachments: [],
+      });
+
+      res.status(200).json(isStatusUpdated);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -485,6 +531,23 @@ exports.updateReviewStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
+
+exports.productAction = async (req, res) => {
+  const { shopId } = req.params;
+  const { productId, isPopular } = req.body;
+  if (!shopId) {
+    return res.status(400).json({ message: "Shop ID is Required" });
+  }
+  try {
+    const affectedRows = await Shop.updatePopularStatus(productId, isPopular);
+    if (affectedRows) {
+      return res.status(200).json(affectedRows);
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 
 // exports.getCategoriesAndProducts = async (_req, res) => {
 //   try {

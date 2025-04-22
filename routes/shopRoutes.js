@@ -17,6 +17,7 @@ router.get('/:shopId/products/:productId', authMiddleware, shopController.getPro
 router.post('/:shopId/create-product', authMiddleware, shopController.addProduct);
 router.put('/:shopId/update-product', authMiddleware, shopController.updateProduct);
 router.get('/:shopId/categories', authMiddleware, shopController.getCategoriesByShopId);
+router.put('/:shopId/product-action', authMiddleware, shopController.productAction);
 /** End */
 
 /** Orders API's */
