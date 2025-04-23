@@ -54,9 +54,8 @@ exports.getAllCartItemsBySessionId = async (req, res) => {
     // Fetch product details for each cart item and calculate the total price
     const cartItemsWithDetails = await Promise.all(cartItems.map(async (item) => {
       const product = await Product.getByProductId(item.productId);
-      // item.price = (item.quantity * product.price).toFixed(2); // Calculate product price based on the quantity
 
-      let unitPrice = product.price;
+      let unitPrice = Number(product.price) - Number(product.offerPrice);
 
       // Check if a valid variantId is provided
       if (item.variantId && item.variantId > 0) {
