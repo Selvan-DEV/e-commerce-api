@@ -192,3 +192,16 @@ exports.getPopularProducts = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 }
+
+exports.getTopSaleProducts = async (req, res) => {
+  try {
+    const products = await Product.getTopSaleProducts();
+    if (products && products.length) {
+      return res.status(200).json(products);
+    } else {
+      return res.status(204).json({ message: "No Products Found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

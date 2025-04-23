@@ -5,6 +5,7 @@ const productController = require('../controllers/productController');
 router.get('/categories', productController.getCategoriesAndProducts);
 router.get('/', productController.getProductList);
 router.get('/popular-products', productController.getPopularProducts);
+router.get('/top-sale-products', productController.getTopSaleProducts);
 router.get('/:productName', productController.getProductDetail);
 router.post('/', productController.addProduct);
 router.delete('/:id', productController.deleteProduct);

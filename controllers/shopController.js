@@ -88,7 +88,14 @@ exports.getProductsbyShopId = async (req, res) => {
     }
 
     const products = await Shop.getProductsByShopId(shopId);
-    res.status(200).json(products);
+    const productWithCategory = await Promise.all(products.map(async (item) => {
+      const category = await Shop.getCategoryById(item.categoryId);
+      return {
+        ...item,
+        categoryName: category.categoryName
+      };
+    }));
+    res.status(200).json(productWithCategory);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

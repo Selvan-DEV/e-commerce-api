@@ -163,6 +163,26 @@ class Product {
     const [rows] = await db.query(`SELECT * FROM products WHERE isPopular = 1`);
     return rows;
   }
+
+  static async getTopSaleProducts() {
+    const [rows] = await db.query(`SELECT 
+        p.id,
+        p.productName,
+        p.uniqueName,
+        p.averageRating,
+        p.imageUrl,
+        p.price,
+        SUM(oi.quantity) AS totalSold,
+        SUM(oi.quantity * oi.price) AS totalRevenue
+      FROM orderitems oi
+      JOIN orders o ON oi.orderId = o.orderId
+      JOIN products p ON oi.productId = p.id
+      WHERE MONTH(o.createdAt) = MONTH(CURRENT_DATE())
+        AND YEAR(o.createdAt) = YEAR(CURRENT_DATE())
+      GROUP BY p.id, p.productName
+      ORDER BY totalSold DESC`);
+    return rows;
+  }
 }
 
 module.exports = Product;
