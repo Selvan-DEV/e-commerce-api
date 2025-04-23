@@ -35,7 +35,7 @@ router.put('/:shopId/coupons/:couponId/update-status', authMiddleware, shopContr
 /** End */
 
 /** Reviews API's */
-router.get('/:shopId/reviews', authMiddleware, shopController.getAllReviews);
+router.get('/:shopId/reviews', shopController.getAllReviews);
 router.put('/:shopId/reviews/:reviewId/update-status', authMiddleware, shopController.updateReviewStatus);
 /** End */
 

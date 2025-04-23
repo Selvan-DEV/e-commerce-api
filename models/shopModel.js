@@ -293,8 +293,13 @@ class Shop {
     return rows.affectedRows;
   }
 
-  static async getAllreviewsByShopId(shopId) {
-    const [rows] = await db.query(`SELECT * FROM reviews WHERE shopId = ? ORDER BY 1 DESC`, [shopId]);
+  static async getAllreviewsByShopId(shopId, isShow) {
+    const query = `
+      SELECT * FROM reviews 
+      WHERE shopId = ? ${isShow ? "AND isShow = 1" : ""} 
+      ORDER BY 1 DESC
+    `;
+    const [rows] = await db.query(query, [shopId]);
     return rows;
   }
 

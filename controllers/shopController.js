@@ -494,12 +494,13 @@ exports.updateCouponStatus = async (req, res) => {
 
 exports.getAllReviews = async (req, res) => {
   const { shopId } = req.params;
+  const { isShow } = req.query;
   if (!shopId) {
     return res.status(400).json({ message: "Shop ID is Required" });
   }
 
   try {
-    const reviews = await Shop.getAllreviewsByShopId(shopId);
+    const reviews = await Shop.getAllreviewsByShopId(shopId, isShow);
 
     const reviewsWithProducts = await Promise.all(reviews.map(async (review) => {
       const product = await Product.getByProductId(review.productId);
