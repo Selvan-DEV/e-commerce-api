@@ -296,7 +296,7 @@ class Shop {
   static async getAllreviewsByShopId(shopId, isShow) {
     const query = `
       SELECT * FROM reviews 
-      WHERE shopId = ? ${isShow ? "AND isShow = 1" : ""} 
+      WHERE shopId = ? ${isShow === 0 ? "AND isShow = 1" : ""} 
       ORDER BY 1 DESC
     `;
     const [rows] = await db.query(query, [shopId]);
