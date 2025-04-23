@@ -61,7 +61,8 @@ exports.getAllCartItemsBySessionId = async (req, res) => {
       if (item.variantId && item.variantId > 0) {
         const variant = await Product.getVariantById(item.variantId);
         if (variant && variant.additionalPrice) {
-          unitPrice = variant.additionalPrice;
+          unitPrice = variant.additionalPrice - Number(product.offerPrice);
+          item.variant = variant.variantName;
         }
       }
 
