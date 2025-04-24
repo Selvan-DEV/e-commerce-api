@@ -1,0 +1,277 @@
+<!-- <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #333;
+        padding: 8px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Tax Invoice</h2>
+    <p>
+      <strong>Invoice Number:</strong> IN-{{orderId}}<br />
+      <strong>Invoice Date:</strong> {{invoiceDate}}
+    </p>
+
+    <p>
+      <strong>Billing Address:</strong><br />
+      {{billingAddress.name}}<br />
+      {{billingAddress.address}}<br />
+      {{billingAddress.city}}, {{billingAddress.state}} -
+      {{billingAddress.pincode}}
+    </p>
+
+    <p>
+      <strong>Shipping Address:</strong><br />
+      {{shippingAddress.name}}<br />
+      {{shippingAddress.address}}<br />
+      {{shippingAddress.city}}, {{shippingAddress.state}} -
+      {{shippingAddress.pincode}}
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Description</th>
+          <th>HSN</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each items}}
+        <tr>
+          <td>{{@index}}</td>
+          <td>{{name}}</td>
+          <td>{{hsn}}</td>
+          <td>{{qty}}</td>
+          <td>{{price}}</td>
+          <td>{{total}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <p><strong>Total:</strong> ₹{{totalAmount}}</p>
+    <p><strong>Amount in words:</strong> {{amountInWords}}</p>
+
+    <p style="margin-top: 50px">
+      For <strong>Your Company Name</strong><br /><br /><br />Authorized
+      Signatory
+    </p>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tax Invoice</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 8px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .header img {
+        width: 125px;
+        background-color: #000000;
+      }
+
+      .header .header-content {
+        display: flex;
+        flex-direction: column;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        color: #333;
+      }
+
+      .sold-to-bill-to {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .sold-to-bill-to h2 {
+        font-size: 1.2em;
+        margin-bottom: 5px;
+      }
+
+      .sold-to-bill-to p {
+        margin: 0 0 5px 0;
+        font-size: 0.9em;
+      }
+
+      .order-invoice-details {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      .total {
+        text-align: right;
+        font-weight: bold;
+      }
+
+      .amount-in-words {
+        margin-bottom: 20px;
+        font-size: 0.9em;
+        text-transform: capitalize;
+      }
+
+      .address {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid #000000;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .footer {
+        text-align: center;
+        font-size: 0.9em;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="https://nagercoil-chips-shop-ui.vercel.app/_next/image?url=%2Fimages%2Flogo%2Flogo.png&w=128&q=75"
+          alt="Amazon Logo"
+          style="background: #000000"
+        />
+        <div class="header-content">
+          <h1>Tax Invoice</h1>
+        </div>
+      </div>
+
+      <div class="sold-to-bill-to">
+        <div>
+          <h2>Sold By: {{sellerName}}</h2>
+        </div>
+      </div>
+
+      <div class="address">
+        <div>
+          <h2>Billing Address:</h2>
+          <p>{{billingAddress.firstName}}, {{billingAddress.address}}</p>
+          <p>{{billingAddress.locality}}, {{billingAddress.landmark}}</p>
+          <p>
+            {{billingAddress.city}}, {{billingAddress.state}},
+            {{billingAddress.pincode}}
+          </p>
+        </div>
+
+        <div>
+          <h2>Shipping Address:</h2>
+          <p>{{shippingAddress.firstName}}, {{shippingAddress.address}}</p>
+          <p>{{shippingAddress.locality}}, {{shippingAddress.landmark}}</p>
+          <p>
+            {{shippingAddress.city}}, {{shippingAddress.state}},
+            {{shippingAddress.pincode}}
+          </p>
+        </div>
+      </div>
+
+      <div class="order-invoice-details">
+        <div>
+          <span><b>Order Number:</b></span>
+          <span>{{orderId}}</span>
+          <br />
+          <span><b>Order Date:</b></span>
+          <span>{{invoiceDate}}</span>
+        </div>
+        <div>
+          <div><b>Place of delivery:</b> {{shippingAddress.state}}</div>
+          <div><b>Place of supply:</b> {{shippingAddress.state}}</div>
+          <br />
+          <div><b>Invoice Number:</b> IN-{{orderId}}</div>
+          <div><b>Invoice Date:</b> {{invoiceDate}}</div>
+        </div>
+      </div>
+
+      <table>
+        <tr>
+          <th>SI.No</th>
+          <th>Product Name</th>
+          <th>Net Amount</th>
+          <th>Quantity</th>
+          <th>Total Amount</th>
+        </tr>
+        <tbody>
+          {{#each items}}
+          <tr>
+            <td>{{serial}}</td>
+            <td>{{product.productName}}</td>
+            <td>{{product.price}}</td>
+            <td>{{quantity}}</td>
+            <td>{{salePrice}}</td>
+          </tr>
+          {{/each}}
+
+          <tr>
+            <td colspan="4" class="total">TOTAL:</td>
+            <td>{{totalAmount}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="amount-in-words">{{amountInWords}}</div>
+    </div>
+  </body>
+</html>

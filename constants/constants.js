@@ -1,5 +1,5 @@
 export const Constants = {
-  STORE_NAME: "Nilas Chips",
+  STORE_NAME: "Nila Chips",
   ORDER_STATUS: {
     ORDERRECEIVED: 'Order Received',
     PROCESSING: 'Processing',

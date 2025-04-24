@@ -2,13 +2,21 @@ const Order = require('../models/orderModel');
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Shop = require('../models/shopModel');
-const fs = require("fs");
+// const fs = require("fs");
 const { sendEmailWithAttachment } = require('../utils/emailService');
 const { generateInvoicePDF } = require('../utils/invoiceGenerator');
 const { generateOrdersCSV } = require('../utils/csvGenerator');
 const { getOrderConfirmationTemplate } = require('../templates/orderConfirmationEmail');
+const express = require("express");
+const puppeteer = require("puppeteer");
+const handlebars = require("handlebars");
+const fs = require("fs-extra");
+const path = require("path");
+const { toWords } = require("number-to-words");
+const os = require("os");
 
 const { v4: uuidv4 } = require('uuid');
+const { Constants } = require('../constants/constants');
 
 exports.addProductToCart = async (req, res) => {
   try {
@@ -118,12 +126,12 @@ exports.createOrder = async (req, res) => {
   const responseBody = req.body;
   const io = req.io;
 
-  let pdfPath = null;
+  let orderId = 0;
 
   try {
-    // Step 1: Create order
+    // Step 1: Save order and items
     const createOrderResponse = await Order.createOrder(responseBody);
-    const orderId = createOrderResponse.insertId;
+    orderId = createOrderResponse.insertId;
 
     if (orderId > 0 && responseBody.cartItem) {
       const orderItems = responseBody.cartItem.cartItems.map((item) => ({
@@ -132,72 +140,108 @@ exports.createOrder = async (req, res) => {
         quantity: item.quantity,
         price: item.price,
       }));
-
       await Promise.all(orderItems.map((item) => Order.addOrderItems(item)));
       await Order.deleteCartItemsByUserId(responseBody.userId);
     }
 
-    // Step 2: Broadcast order
-    io.emit("orderUpdate", { id: createOrderResponse.affectedRows });
+    // Step 2: Broadcast event
+    io.emit("orderUpdate", { id: orderId });
 
-    // Step 3: Prepare invoice data
-    const invoiceData = {
+    // Step 3: Respond immediately to client
+    res.status(201).json({ ...createOrderResponse, message: "Order created successfully." });
+
+    // Step 4: Continue PDF + Email in background
+    generateInvoiceAndSendEmail(orderId, responseBody);
+
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
+  let tempPdfPath = null;
+  try {
+    const invoiceDate = new Date().toLocaleDateString("en-IN");
+
+    const templatePath = path.join(__dirname, "../templates/orderInvoiceTemplate.html");
+    const source = await fs.readFile(templatePath, "utf-8");
+    const template = handlebars.compile(source);
+
+    const addressRows = await User.getUserAddressesByIds(responseBody.shippingAddressId, responseBody.billingAddressId);
+    let shippingAddress = null;
+    let billingAddress = null;
+    if (addressRows && addressRows.length) {
+      shippingAddress = addressRows.find((addr) => addr.addressId === responseBody.shippingAddressId);
+      billingAddress = addressRows.find((addr) => addr.addressId === responseBody.billingAddressId);
+    }
+
+    const html = template({
+      orderId,
+      customer: "Suja K",
+      shippingAddress,
+      billingAddress,
+      items: responseBody.cartItem.cartItems.map((item, index) =>
+      ({
+        ...item, serial: index + 1,
+        salePrice: item.product.price - Number(item.product.offerPrice)
+      })),
+      totalAmount: responseBody.orderAmount,
+      sellerName: Constants.STORE_NAME,
+      invoiceDate,
+      amountInWords: toWords(responseBody.orderAmount) + " only",
+    });
+
+    tempPdfPath = path.join(os.tmpdir(), `invoice-${orderId}.pdf`);
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.pdf({ path: tempPdfPath, format: "A4" });
+    await browser.close();
+
+    const emailData = {
       invoiceId: `Invoice-${orderId}`,
-      date: new Date().toLocaleDateString(),
+      date: invoiceDate,
       customerName: responseBody.name || "Customer",
       customerEmail: responseBody.toEmailAddress,
       items: responseBody.cartItem.cartItems,
       total: responseBody.orderAmount,
     };
 
-    pdfPath = await generateInvoicePDF(invoiceData);
-
-    // Step 4: Email content
     const customerEmailOptions = {
-      to: invoiceData.customerEmail,
+      to: emailData.customerEmail,
       subject: "Your Order Confirmation - MyShop",
-      html: getOrderConfirmationTemplate(invoiceData) || "hello",
-      attachments: [
-        {
-          filename: "invoice.pdf",
-          path: pdfPath,
-        },
-      ],
+      html: getOrderConfirmationTemplate(emailData),
+      attachments: [{ filename: "invoice.pdf", path: tempPdfPath }],
     };
 
     const adminEmailOptions = {
       to: "selvan894050@gmail.com",
-      subject: `New Order Received - ${invoiceData.invoiceId}`,
-      text: `A new order has been placed by ${invoiceData.customerEmail}.`,
-      attachments: [
-        {
-          filename: "invoice.pdf",
-          path: pdfPath,
-        },
-      ],
+      subject: `New Order Received - ${emailData.invoiceId}`,
+      text: `A new order has been placed by ${emailData.customerEmail}.`,
+      attachments: [{ filename: "invoice.pdf", path: tempPdfPath }],
     };
 
-    // Step 5: Send both emails
     await Promise.all([
       sendEmailWithAttachment(customerEmailOptions),
       sendEmailWithAttachment(adminEmailOptions),
     ]);
 
-    // Step 6: Clean up invoice file
-    fs.unlink(pdfPath, (err) => {
-      if (err) console.error("Failed to delete invoice:", err);
+    // Clean up file
+    fs.unlink(tempPdfPath, (err) => {
+      if (err) console.error("Temp PDF delete error:", err);
     });
 
-    return res.status(201).json(createOrderResponse);
   } catch (error) {
-    // Delete the PDF if it was generated
-    if (pdfPath && fs.existsSync(pdfPath)) {
-      fs.unlinkSync(pdfPath);
+    console.error("Error in background invoice/email process:", error);
+    if (tempPdfPath && fs.existsSync(tempPdfPath)) {
+      fs.unlinkSync(tempPdfPath);
     }
-
-    return res.status(500).json({ error: error.message });
   }
 };
+
 
 exports.getOrdersByUserId = async (req, res) => {
   try {
