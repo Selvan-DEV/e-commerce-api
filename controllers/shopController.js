@@ -6,6 +6,8 @@ const { generateOrdersCSV } = require('../utils/csvGenerator');
 const { sendEmailWithAttachment } = require('../utils/emailService');
 const { getStatusUpdateTemplate } = require('../templates/orderProcessingEmail.js');
 const { Constants } = require('../constants/constants.js');
+const path = require("path");
+const fs = require("fs-extra");
 
 exports.getDashboardSummaryCards = async (req, res) => {
   try {
@@ -25,7 +27,7 @@ exports.getDashboardSummaryCards = async (req, res) => {
       const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
       return {
         ...item,
-        orderStatus: orderStatus.orderStatusName
+        orderStatus: orderStatus ? orderStatus.orderStatusName : null
       };
     }));
 
@@ -189,7 +191,7 @@ exports.getCategoriesByShopId = async (req, res) => {
 exports.getOrdersByShopId = async (req, res) => {
   try {
     const { shopId } = req.params;
-    const { status, isDownload } = req.query;
+    const { status } = req.query;
 
     const filters = {
       status: status || '',
@@ -206,91 +208,114 @@ exports.getOrdersByShopId = async (req, res) => {
       return;
     }
 
-    if (isDownload === "No") {
-      const ordersWithAddressDetails = await Promise.all(orders.map(async (item) => {
-        const shippingAddress = await Shop.getAddressDetailsById(item.shippingAddressId);
-        const billingAddress = await Shop.getAddressDetailsById(item.billingAddressId);
-        const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
+    const ordersWithAddressDetails = await Promise.all(orders.map(async (item) => {
+      const shippingAddress = await Shop.getAddressDetailsById(item.shippingAddressId);
+      const billingAddress = await Shop.getAddressDetailsById(item.billingAddressId);
+      const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
 
-        return {
-          ...item,
-          shippingAddress,
-          billingAddress: billingAddress ? billingAddress : null,
-          orderStatus: orderStatus.orderStatusName
-        };
-      }));
+      return {
+        ...item,
+        shippingAddress,
+        billingAddress: billingAddress ? billingAddress : null,
+        orderStatus: orderStatus ? orderStatus.orderStatusName : null
+      };
+    }));
 
-      res.status(200).json(ordersWithAddressDetails);
-    } else {
-      const orderForExport = await Promise.all(orders.map(async (item) => {
-        const user = await User.getUserById(item.userId);
-        const shippingAddress = await Shop.getAddressDetailsById(item.shippingAddressId);
-        const billingAddress = await Shop.getAddressDetailsById(item.billingAddressId);
-        // const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
-
-
-        const cartItems = await Orders.getOrderByOrderId(item.orderId);
-        // Step 2: Fetch product info for each productId
-        const products = await Promise.all(
-          cartItems.map(async (cartItem) => {
-            const product = await Product.getByProductId(cartItem.productId);
-            return {
-              ...product,
-              orderQuantity: cartItem.quantity,
-              orderProductPrice: cartItem.price
-            };
-          })
-        );
-
-        return {
-          orderNumber: item.orderId,
-          transportMode: "",
-          paymentMode: "Prepaid",
-          codAmount: 0,
-          customerName: shippingAddress.firstName + ' ' + shippingAddress.lastName,
-          phone: shippingAddress.phoneNumber,
-          email: user ? user.email : '',
-          shippingAddress: {
-            address: shippingAddress.address,
-            apartment: shippingAddress.landmark,
-            city: shippingAddress.city,
-            state: shippingAddress.state,
-            pincode: shippingAddress.pincode
-          },
-          billingAddress: {
-            address: billingAddress ? billingAddress.address : "",
-            apartment: billingAddress ? billingAddress.landmark : "",
-            city: billingAddress ? billingAddress.city : "",
-            state: billingAddress ? billingAddress.state : "",
-            pincode: billingAddress ? billingAddress.pincode : ""
-          },
-          products: products && products.length ?
-            products.map((product) => ({
-              skuCode: product.sku, skuName: product.skuCode, quantity: product.orderQuantity,
-              price: product.orderQuantity
-            })) : [],
-          sellerInfo: {
-            name: "FitMart",
-            gst: "29ABCDE1234F2Z5",
-            addressLine1: "88, Health Street",
-            addressLine2: "Warehouse Zone",
-            city: "Bangalore",
-            state: "Karnataka",
-            pincode: "560010"
-          }
-        };
-      }));
-
-      const csvData = await generateOrdersCSV(orderForExport);
-      res.setHeader("Content-Disposition", "attachment; filename=orders.csv");
-      res.setHeader("Content-Type", "text/csv");
-      res.status(200).send(csvData);
-    }
+    res.status(200).json(ordersWithAddressDetails);
 
   } catch (error) {
     console.log(error, 'error')
     res.status(500).json({ error: error.message });
   }
+}
+
+exports.ordersExport = async (req, res) => {
+  const { shopId } = req.params;
+  const { orderIds } = req.body;
+
+  if (!shopId) {
+    return res.status(400).json({ message: 'Shop Id is required' });
+  }
+
+  if (!orderIds.split(',')?.length) {
+    return res.status(400).json({ message: 'Order Ids is required' });
+  }
+
+  try {
+    const orders = await Shop.getOrderByIds(orderIds);
+    if (!orders.length) {
+      res.status(204).json({ message: "No Order Found" });
+      return;
+    }
+
+    const orderForExport = await Promise.all(orders.map(async (item) => {
+      const user = await User.getUserById(item.userId);
+      const shippingAddress = await Shop.getAddressDetailsById(item.shippingAddressId);
+      const billingAddress = await Shop.getAddressDetailsById(item.billingAddressId);
+      // const orderStatus = await Shop.getOrderStatusById(item.orderStatus);
+
+
+      const cartItems = await Orders.getOrderByOrderId(item.orderId);
+      // Step 2: Fetch product info for each productId
+      const products = await Promise.all(
+        cartItems.map(async (cartItem) => {
+          const product = await Product.getByProductId(cartItem.productId);
+          return {
+            ...product,
+            orderQuantity: cartItem.quantity,
+            orderProductPrice: cartItem.price
+          };
+        })
+      );
+
+      return {
+        orderNumber: item.orderId,
+        transportMode: "",
+        paymentMode: "Prepaid",
+        codAmount: 0,
+        customerName: shippingAddress.firstName + ' ' + shippingAddress.lastName,
+        phone: shippingAddress.phoneNumber,
+        email: user ? user.email : '',
+        shippingAddress: {
+          address: shippingAddress.address,
+          apartment: shippingAddress.landmark,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          pincode: shippingAddress.pincode
+        },
+        billingAddress: {
+          address: billingAddress ? billingAddress.address : "",
+          apartment: billingAddress ? billingAddress.landmark : "",
+          city: billingAddress ? billingAddress.city : "",
+          state: billingAddress ? billingAddress.state : "",
+          pincode: billingAddress ? billingAddress.pincode : ""
+        },
+        products: products && products.length ?
+          products.map((product) => ({
+            skuCode: product.sku, skuName: product.skuCode, quantity: product.orderQuantity,
+            price: product.orderQuantity
+          })) : [],
+        sellerInfo: {
+          name: "FitMart",
+          gst: "29ABCDE1234F2Z5",
+          addressLine1: "88, Health Street",
+          addressLine2: "Warehouse Zone",
+          city: "Bangalore",
+          state: "Karnataka",
+          pincode: "560010"
+        }
+      };
+    }));
+
+    const csvData = await generateOrdersCSV(orderForExport);
+    res.setHeader("Content-Disposition", "attachment; filename=orders.csv");
+    res.setHeader("Content-Type", "text/csv");
+    res.status(200).send(csvData);
+  } catch (error) {
+    console.log(error, 'error')
+    res.status(500).json({ error: error.message });
+  }
+
 }
 
 exports.getOrderStatuses = async (req, res) => {
@@ -553,6 +578,29 @@ exports.productAction = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+}
+
+exports.downloadInvoice = async (req, res) => {
+  const { shopId, orderId } = req.params;
+  if (!shopId || !orderId) {
+    return res.status(400).json({ message: "Shop and Order ID's are Required" });
+  }
+  try {
+    const file = await Shop.getInvoiceFilePath(orderId);
+    if (!file) {
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    const filePath = path.join(__dirname, "../", file.filePath);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Invoice file missing from server" });
+    }
+    res.download(filePath, `invoice-${orderId}.pdf`);
+  } catch (error) {
+    console.error("Download error:", error);
+    res.status(500).json({ error: "Server error while downloading invoice" });
   }
 }
 

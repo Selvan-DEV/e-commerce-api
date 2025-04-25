@@ -2,25 +2,21 @@ const Order = require('../models/orderModel');
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Shop = require('../models/shopModel');
-// const fs = require("fs");
 const { sendEmailWithAttachment } = require('../utils/emailService');
-const { generateInvoicePDF } = require('../utils/invoiceGenerator');
 const { generateOrdersCSV } = require('../utils/csvGenerator');
 const { getOrderConfirmationTemplate } = require('../templates/orderConfirmationEmail');
-const express = require("express");
 const puppeteer = require("puppeteer");
 const handlebars = require("handlebars");
 const fs = require("fs-extra");
 const path = require("path");
 const { toWords } = require("number-to-words");
-const os = require("os");
 
 const { v4: uuidv4 } = require('uuid');
 const { Constants } = require('../constants/constants');
 
 exports.addProductToCart = async (req, res) => {
   try {
-    const { productId, sessionId, quantity, userId, variantId } = req.body;
+    const { productId, sessionId, quantity, userId } = req.body;
 
     if (!productId || !quantity) {
       return res.status(400).json({ message: 'Product ID and quantity are required' });
@@ -161,10 +157,11 @@ exports.createOrder = async (req, res) => {
 
 
 const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
-  let tempPdfPath = null;
+  let invoicePath = null;
   try {
     const invoiceDate = new Date().toLocaleDateString("en-IN");
 
+    const user = await User.getUserById(responseBody.userId);
     const templatePath = path.join(__dirname, "../templates/orderInvoiceTemplate.html");
     const source = await fs.readFile(templatePath, "utf-8");
     const template = handlebars.compile(source);
@@ -179,7 +176,7 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
 
     const html = template({
       orderId,
-      customer: "Suja K",
+      customer: user?.firstName,
       shippingAddress,
       billingAddress,
       items: responseBody.cartItem.cartItems.map((item, index) =>
@@ -193,12 +190,12 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       amountInWords: toWords(responseBody.orderAmount) + " only",
     });
 
-    tempPdfPath = path.join(os.tmpdir(), `invoice-${orderId}.pdf`);
+    invoicePath = path.join(__dirname, '../invoices', `invoice-${orderId}.pdf`);
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
-    await page.pdf({ path: tempPdfPath, format: "A4" });
+    await page.pdf({ path: invoicePath, format: "A4" });
     await browser.close();
 
     const emailData = {
@@ -214,14 +211,14 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       to: emailData.customerEmail,
       subject: "Your Order Confirmation - MyShop",
       html: getOrderConfirmationTemplate(emailData),
-      attachments: [{ filename: "invoice.pdf", path: tempPdfPath }],
+      attachments: [{ filename: "invoice.pdf", path: invoicePath }],
     };
 
     const adminEmailOptions = {
-      to: "selvan894050@gmail.com",
+      to: process.env.ADMIN_EMAIL,
       subject: `New Order Received - ${emailData.invoiceId}`,
       text: `A new order has been placed by ${emailData.customerEmail}.`,
-      attachments: [{ filename: "invoice.pdf", path: tempPdfPath }],
+      attachments: [{ filename: "invoice.pdf", path: invoicePath }],
     };
 
     await Promise.all([
@@ -229,16 +226,15 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       sendEmailWithAttachment(adminEmailOptions),
     ]);
 
-    // Clean up file
-    fs.unlink(tempPdfPath, (err) => {
-      if (err) console.error("Temp PDF delete error:", err);
-    });
+    // Save Invoice Meta Data
+    const payload = {
+      orderId,
+      userId: responseBody.userId
+    }
+    await Order.insertInvoiceMetaData(payload);
 
   } catch (error) {
     console.error("Error in background invoice/email process:", error);
-    if (tempPdfPath && fs.existsSync(tempPdfPath)) {
-      fs.unlinkSync(tempPdfPath);
-    }
   }
 };
 

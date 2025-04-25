@@ -22,8 +22,10 @@ router.put('/:shopId/product-action', authMiddleware, shopController.productActi
 
 /** Orders API's */
 router.get('/:shopId/orders', authMiddleware, shopController.getOrdersByShopId);
+router.post('/:shopId/orders-export', authMiddleware, shopController.ordersExport);
 router.get('/:shopId/orders/:orderId', authMiddleware, shopController.getOrderItemsByOrderId);
 router.put('/:shopId/orders/updateOrderStatus', authMiddleware, shopController.updateOrderStatus);
+router.get('/:shopId/orders/:orderId/download-invoice', authMiddleware, shopController.downloadInvoice);
 /** End */
 
 /** Coupons Management */

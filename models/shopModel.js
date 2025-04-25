@@ -208,6 +208,11 @@ class Shop {
   }
 
 
+  static async getOrderByIds(ids) {
+    const [rows] = await db.query(`SELECT * FROM orders WHERE orderId IN (?)`, [ids]);
+    return rows;
+  }
+
   static async getCustomers(shopId, filters = {}) {
     let query = `SELECT * FROM users WHERE role != ?`; // Always exclude admin users
     const params = ['Admin']; // Always exclude 'Admin'
@@ -311,6 +316,11 @@ class Shop {
   static async updatePopularStatus(productId, isPopular) {
     const [rows] = await db.query(`UPDATE products SET isPopular = ?  WHERE id = ?`, [isPopular, productId]);
     return rows.affectedRows;
+  }
+
+  static async getInvoiceFilePath(orderId) {
+    const [rows] = await db.query(`SELECT filePath FROM invoices WHERE orderId = ?`, [orderId]);
+    return rows[0];
   }
 }
 

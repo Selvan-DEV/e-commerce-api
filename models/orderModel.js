@@ -93,6 +93,13 @@ class Order {
     const [rows] = await db.query(`SELECT * FROM checkout_sessions WHERE id = ?`, [id]);
     return rows[0];
   }
+
+  static async insertInvoiceMetaData(payload) {
+    const { orderId, userId } = payload;
+    const [rows] = await db.query(`INSERT INTO invoices (orderId, userId, invoiceNumber, invoiceDate, filePath) VALUES (?, ?, ?, ?, ?)`,
+      [orderId, userId, `Invoice-${orderId}`, new Date(), `invoices/invoice-${orderId}.pdf`]);
+    return rows.affectedRows;
+  }
 }
 
 module.exports = Order;
