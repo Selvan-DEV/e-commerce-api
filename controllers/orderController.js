@@ -120,8 +120,6 @@ exports.deleteCartItem = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
   const responseBody = req.body;
-  const io = req.io;
-
   let orderId = 0;
 
   try {
@@ -140,8 +138,7 @@ exports.createOrder = async (req, res) => {
       await Order.deleteCartItemsByUserId(responseBody.userId);
     }
 
-    // Step 2: Broadcast event
-    io.emit("orderUpdate", { id: orderId });
+    req.io.emit("orderUpdate", { orderId });
 
     // Step 3: Respond immediately to client
     res.status(201).json({ ...createOrderResponse, message: "Order created successfully." });
@@ -200,9 +197,6 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
     }
 
     invoicePath = path.join(__dirname, '../invoices', `invoice-${orderId}.pdf`);
-
-
-
 
     const browser = await chromium.launch();
     const page = await browser.newPage();

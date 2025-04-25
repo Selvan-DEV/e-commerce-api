@@ -7,35 +7,28 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const shopDashboardRoutes = require('./routes/shopDashboardRoutes');
 const shopRoutes = require('./routes/shopRoutes');
 
-const { Server } = require('socket.io');
-const http = require('http');
 const cors = require('cors');
+const http = require('http');
 require('dotenv').config();
+
+const { initSocket } = require("./socket");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
-
 const port = process.env.PORT || 5001;
 
-// CORS + Body Parser
+// Middlewares
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Make `io` available to all routes/controllers via req.io
+// Initialize socket.io
+const io = initSocket(server);
+
+// Make io available in controllers
 app.use((req, res, next) => {
   req.io = io;
   next();
-});
-
-// Simple Socket.IO setup (no need to manually store connected clients)
-io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
 });
 
 // Routes
@@ -48,5 +41,5 @@ app.use('/api/shop/dashboard', shopDashboardRoutes);
 
 // Start Server
 server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`🚀 Server is running on http://localhost:${port}`);
 });
