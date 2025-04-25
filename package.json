@@ -29,7 +29,7 @@
     "number-to-words": "^1.2.4",
     "path": "^0.12.7",
     "pdfkit": "^0.16.0",
-    "puppeteer": "^24.7.1",
+    "playwright": "^1.52.0",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.1",
     "stripe": "^16.7.0",

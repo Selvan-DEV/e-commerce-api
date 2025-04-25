@@ -5,7 +5,7 @@ const Shop = require('../models/shopModel');
 const { sendEmailWithAttachment } = require('../utils/emailService');
 const { generateOrdersCSV } = require('../utils/csvGenerator');
 const { getOrderConfirmationTemplate } = require('../templates/orderConfirmationEmail');
-const puppeteer = require("puppeteer");
+const { chromium } = require('playwright');
 const handlebars = require("handlebars");
 const fs = require("fs-extra");
 const path = require("path");
@@ -204,9 +204,9 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
 
 
 
-    const browser = await puppeteer.launch();
+    const browser = await chromium.launch();
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "networkidle" });
     await page.pdf({ path: invoicePath, format: "A4" });
     await browser.close();
 
