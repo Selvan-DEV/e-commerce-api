@@ -190,7 +190,19 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       amountInWords: toWords(responseBody.orderAmount) + " only",
     });
 
+    // Check if the invoices folder exists
+    const invoicesDir = path.join(__dirname, '../invoices');
+    if (!fs.existsSync(invoicesDir)) {
+      fs.mkdirSync(invoicesDir, { recursive: true });
+      console.log('✅ Created invoices folder');
+    } else {
+      console.log('✅ invoices folder already exists');
+    }
+
     invoicePath = path.join(__dirname, '../invoices', `invoice-${orderId}.pdf`);
+
+
+
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
