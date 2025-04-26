@@ -1,83 +1,3 @@
-<!-- <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-      th,
-      td {
-        border: 1px solid #333;
-        padding: 8px;
-        text-align: left;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Tax Invoice</h2>
-    <p>
-      <strong>Invoice Number:</strong> IN-{{orderId}}<br />
-      <strong>Invoice Date:</strong> {{invoiceDate}}
-    </p>
-
-    <p>
-      <strong>Billing Address:</strong><br />
-      {{billingAddress.name}}<br />
-      {{billingAddress.address}}<br />
-      {{billingAddress.city}}, {{billingAddress.state}} -
-      {{billingAddress.pincode}}
-    </p>
-
-    <p>
-      <strong>Shipping Address:</strong><br />
-      {{shippingAddress.name}}<br />
-      {{shippingAddress.address}}<br />
-      {{shippingAddress.city}}, {{shippingAddress.state}} -
-      {{shippingAddress.pincode}}
-    </p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Description</th>
-          <th>HSN</th>
-          <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each items}}
-        <tr>
-          <td>{{@index}}</td>
-          <td>{{name}}</td>
-          <td>{{hsn}}</td>
-          <td>{{qty}}</td>
-          <td>{{price}}</td>
-          <td>{{total}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-
-    <p><strong>Total:</strong> ₹{{totalAmount}}</p>
-    <p><strong>Amount in words:</strong> {{amountInWords}}</p>
-
-    <p style="margin-top: 50px">
-      For <strong>Your Company Name</strong><br /><br /><br />Authorized
-      Signatory
-    </p>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -144,6 +64,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
+        border: 1px solid #b7b6b6;
+        padding: 10px;
       }
 
       table {
@@ -176,8 +98,7 @@
       .address {
         display: flex;
         justify-content: space-between;
-        border: 1px solid #000000;
-        padding: 10px;
+        border: 1px solid #b7b6b6;
         margin-bottom: 10px;
       }
 
@@ -186,6 +107,20 @@
         font-size: 0.9em;
         color: #555;
       }
+
+      .address-title {
+        font-size: 16px;
+        font-weight: bold;
+        padding-bottom: 10px;
+      }
+
+      .billing-address {
+        padding: 10px;
+      }
+
+      .shipping-address {
+        padding: 10px;
+      }
     </style>
   </head>
   <body>
@@ -193,8 +128,7 @@
       <div class="header">
         <img
           src="https://nagercoil-chips-shop-ui.vercel.app/_next/image?url=%2Fimages%2Flogo%2Flogo.png&w=128&q=75"
-          alt="Amazon Logo"
-          style="background: #000000"
+          alt="Nila Logo"
         />
         <div class="header-content">
           <h1>Tax Invoice</h1>
@@ -208,24 +142,24 @@
       </div>
 
       <div class="address">
-        <div>
-          <h2>Billing Address:</h2>
-          <p>{{billingAddress.firstName}}, {{billingAddress.address}}</p>
-          <p>{{billingAddress.locality}}, {{billingAddress.landmark}}</p>
-          <p>
-            {{billingAddress.city}}, {{billingAddress.state}},
-            {{billingAddress.pincode}}
-          </p>
+        <div class="billing-address">
+          <div class="address-title">Billing Address:</div>
+          <div>{{billingAddress.firstName}}, {{billingAddress.address}}</div>
+          <div>{{billingAddress.locality}}, {{billingAddress.landmark}}</div>
+          <div>
+            {{billingAddress.city}} – {{billingAddress.pincode}},
+            {{billingAddress.state}}
+          </div>
         </div>
 
-        <div>
-          <h2>Shipping Address:</h2>
-          <p>{{shippingAddress.firstName}}, {{shippingAddress.address}}</p>
-          <p>{{shippingAddress.locality}}, {{shippingAddress.landmark}}</p>
-          <p>
-            {{shippingAddress.city}}, {{shippingAddress.state}},
-            {{shippingAddress.pincode}}
-          </p>
+        <div class="shipping-address">
+          <div class="address-title">Shipping Address:</div>
+          <div>{{shippingAddress.firstName}}, {{shippingAddress.address}}</div>
+          <div>{{shippingAddress.locality}}, {{shippingAddress.landmark}}</div>
+          <div>
+            {{shippingAddress.city}} – {{shippingAddress.pincode}},
+            {{shippingAddress.state}}
+          </div>
         </div>
       </div>
 

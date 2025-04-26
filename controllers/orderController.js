@@ -201,7 +201,7 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
     const browser = await chromium.launch();
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle" });
-    await page.pdf({ path: invoicePath, format: "A4" });
+    await page.pdf({ path: invoicePath, format: "A4", printBackground: true, });
     await browser.close();
 
     const emailData = {
