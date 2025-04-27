@@ -197,10 +197,10 @@ exports.forgotPassword = async (req, res) => {
     }
 
     // Check if the old password is correct
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Old password is incorrect' });
-    }
+    // const isMatch = await bcrypt.compare(oldPassword, user.password);
+    // if (!isMatch) {
+    //   return res.status(400).json({ message: 'Old password is incorrect' });
+    // }
 
     // Encrypt the new password
     const salt = await bcrypt.genSalt(10);
