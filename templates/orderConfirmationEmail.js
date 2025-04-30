@@ -26,9 +26,21 @@ export const getOrderConfirmationTemplate = (orderData) => {
               <tr>
                 <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.product.productName}</td>
                 <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.quantity}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">Rs.${Number(item.product.price) - Number(item.product.offerPrice)}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                Rs.${item.variantId > 0 ? Number(item.price) :
+      Number(item.product.price) - Number(item.product.offerPrice)}</td>
               </tr>
-            `).join("")}
+              `).join("")}
+
+               <tr>
+                <td colspan="2" style="padding: 10px; border-bottom: 1px solid #eee;">Discount:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">-Rs.${orderData.discountValue}</td>
+              </tr>
+
+              <tr>
+                <td colspan="2" style="padding: 10px; border-bottom: 1px solid #eee;">Delivery Charge:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">Rs.${orderData.deliveryCharge}</td>
+              </tr>
           </tbody>
         </table>
 

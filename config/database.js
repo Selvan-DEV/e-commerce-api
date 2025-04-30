@@ -15,4 +15,12 @@ const pool = mysql.createPool({
   port: 10244
 });
 
+// const pool = mysql.createPool({
+//   host: '89.116.21.79',
+//   user: 'selvan',
+//   password: 'Nilaash@2020',
+//   database: 'nilaa-foods-db',
+//   port: 3306
+// });
+
 module.exports = pool.promise();

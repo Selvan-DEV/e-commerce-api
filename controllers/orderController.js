@@ -179,21 +179,21 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       items: responseBody.cartItem.cartItems.map((item, index) =>
       ({
         ...item, serial: index + 1,
-        salePrice: item.product.price - Number(item.product.offerPrice)
+        salePrice: item.variantId > 0 ? Number(item.price) :
+          Number(item.product.price) - Number(item.product.offerPrice)
       })),
       totalAmount: responseBody.orderAmount,
       sellerName: Constants.STORE_NAME,
       invoiceDate,
       amountInWords: toWords(responseBody.orderAmount) + " only",
+      deliveryCharge: (responseBody.deliveryCharge || 0).toFixed(2),
+      discountValue: (responseBody.discountValue || 0).toFixed(2)
     });
 
     // Check if the invoices folder exists
     const invoicesDir = path.join(__dirname, '../invoices');
     if (!fs.existsSync(invoicesDir)) {
       fs.mkdirSync(invoicesDir, { recursive: true });
-      console.log('✅ Created invoices folder');
-    } else {
-      console.log('✅ invoices folder already exists');
     }
 
     invoicePath = path.join(__dirname, '../invoices', `invoice-${orderId}.pdf`);
@@ -211,20 +211,22 @@ const generateInvoiceAndSendEmail = async (orderId, responseBody) => {
       customerEmail: responseBody.toEmailAddress,
       items: responseBody.cartItem.cartItems,
       total: responseBody.orderAmount,
+      deliveryCharge: (responseBody.deliveryCharge || 0).toFixed(2),
+      discountValue: (responseBody.discountValue || 0).toFixed(2)
     };
 
     const customerEmailOptions = {
       to: emailData.customerEmail,
-      subject: "Your Order Confirmation - MyShop",
+      subject: `Your Order Confirmation - ${Constants.STORE_NAME}`,
       html: getOrderConfirmationTemplate(emailData),
       attachments: [{ filename: "invoice.pdf", path: invoicePath }],
     };
 
     const adminEmailOptions = {
       to: process.env.ADMIN_EMAIL,
-      subject: `New Order Received - ${emailData.invoiceId}`,
-      text: `A new order has been placed by ${emailData.customerEmail}.`,
-      attachments: [{ filename: "invoice.pdf", path: invoicePath }],
+      subject: `New Order Received - ${user.firstName}`,
+      text: `A new order has been placed by ${user.firstName}.`,
+      attachments: [{ filename: `"invoice-${orderId}.pdf"`, path: invoicePath }],
     };
 
     await Promise.all([
@@ -445,7 +447,6 @@ exports.getCheckoutSessionById = async (req, res) => {
 
 
 exports.exportOrdersCsv = async (req, res) => {
-  console.log(res, 'res')
   try {
     // const orders = await getOrdersWithStatus("Order Received");
     const ordersMock = [

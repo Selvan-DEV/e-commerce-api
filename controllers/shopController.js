@@ -224,7 +224,6 @@ exports.getOrdersByShopId = async (req, res) => {
     res.status(200).json(ordersWithAddressDetails);
 
   } catch (error) {
-    console.log(error, 'error')
     res.status(500).json({ error: error.message });
   }
 }
@@ -312,7 +311,6 @@ exports.ordersExport = async (req, res) => {
     res.setHeader("Content-Type", "text/csv");
     res.status(200).send(csvData);
   } catch (error) {
-    console.log(error, 'error')
     res.status(500).json({ error: error.message });
   }
 
