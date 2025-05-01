@@ -41,8 +41,8 @@ class Order {
   }
 
   static async addOrderItems(orderProductData) {
-    const [result] = await db.query(`INSERT INTO orderitems (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)`,
-      [orderProductData.orderId, orderProductData.productId, orderProductData.quantity, orderProductData.price]);
+    const [result] = await db.query(`INSERT INTO orderitems (orderId, productId, quantity, price, variantId) VALUES (?, ?, ?, ?, ?)`,
+      [orderProductData.orderId, orderProductData.productId, orderProductData.quantity, orderProductData.price, orderProductData.variantId]);
     return result;
   }
 
@@ -99,6 +99,11 @@ class Order {
     const [rows] = await db.query(`INSERT INTO invoices (orderId, userId, invoiceNumber, invoiceDate, filePath) VALUES (?, ?, ?, ?, ?)`,
       [orderId, userId, `Invoice-${orderId}`, new Date(), `invoices/invoice-${orderId}.pdf`]);
     return rows.affectedRows;
+  }
+
+  static async updateCStable(checkoutSessionId, orderId) {
+    const [result] = await db.query(`UPDATE checkout_sessions SET paymentStatus = ?, orderId = ? WHERE id = ?`, ["Paid", orderId, checkoutSessionId]);
+    return result.affectedRows;
   }
 }
 

@@ -322,6 +322,49 @@ class Shop {
     const [rows] = await db.query(`SELECT filePath FROM invoices WHERE orderId = ?`, [orderId]);
     return rows[0];
   }
+
+  static async getOrderDetailsById(orderId) {
+    const [rows] = await db.query(`
+      SELECT 
+        oi.orderId,
+        oi.productId,
+        p.productName,
+        oi.quantity,
+        oi.price,
+        oi.orderItemId,
+        cs.deliveryCharge,
+        cs.discountValue,
+        cs.paymentStatus,
+        cs.discountCode,
+        ppv.variantName,
+        oi.variantId,
+        p.weight,
+        p.imageUrl,
+        p.offerPrice,
+    CASE 
+        WHEN oi.variantId IS NOT NULL THEN ppv.additionalPrice
+        ELSE p.price
+    END AS productPrice,
+    cs.finalAmount,
+    os.orderStatusName,
+    o.orderStatus
+      FROM 
+          orderitems oi
+      JOIN 
+          products p ON oi.productId = p.id
+      JOIN 
+          orders o ON o.orderId = oi.orderId
+      LEFT JOIN 
+          product_price_variants ppv ON oi.variantId = ppv.variantsId
+      LEFT JOIN
+          orderstatus os ON os.orderStatusId = o.orderStatus
+      JOIN 
+          checkout_sessions cs ON oi.orderId = cs.orderId
+      WHERE 
+          oi.orderId = ?;
+      `, [orderId]);
+    return rows;
+  }
 }
 
 module.exports = Shop;

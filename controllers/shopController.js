@@ -333,36 +333,38 @@ exports.getOrderItemsByOrderId = async (req, res) => {
       return res.status(400).json({ message: 'Id is required' });
     }
 
-    const orders = await Shop.getOrderItemsByOrderId(orderId);
-    const order = await Shop.getOrderByOrderId(orderId);
-    const orderStatus = await Shop.getOrderStatusById(order.orderStatus)
+    const order = await Shop.getOrderDetailsById(orderId);
 
-    if (orders.length <= 0) {
-      return res.status(404).json({ message: "No Order Items Found" });
-    }
+    // const orderProducts = await Shop.getOrderItemsByOrderId(orderId);
+    // const order = await Shop.getOrderByOrderId(orderId);
+    // const orderStatus = await Shop.getOrderStatusById(order.orderStatus);
 
-    // Get Respective addressDetails
-    const orderItems = await Promise.all(orders.map(async (item) => {
-      const product = await Shop.getProductById(item.productId);
-      return {
-        ...item,
-        product
-      };
-    }));
+    // if (orderProducts.length <= 0) {
+    //   return res.status(404).json({ message: "No Order Items Found" });
+    // }
 
-    // Calculate total price
-    const totalPrice = orderItems.reduce((sum, item) => {
-      return sum + parseFloat(item.price);
-    }, 0);
+    // // Get Respective addressDetails
+    // const orderDetails = await Promise.all(orderProducts.map(async (item) => {
+    //   const product = await Shop.getProductById(item.productId);
+    //   return {
+    //     ...item,
+    //     product
+    //   };
+    // }));
 
-    const response = {
-      orderId: orderItems[0].orderId,
-      totalAmount: totalPrice,
-      orderStatus: orderStatus.orderStatusName,
-      orderItems
-    }
+    // // Calculate total price
+    // const totalPrice = orderDetails.reduce((sum, item) => {
+    //   return sum + parseFloat(item.price);
+    // }, 0);
 
-    res.status(200).json(response);
+    // const response = {
+    //   orderId: orderDetails[0].orderId,
+    //   totalAmount: totalPrice,
+    //   orderStatus: orderStatus.orderStatusName,
+    //   orderItems: orderDetails
+    // }
+
+    res.status(200).json(order);
 
   } catch (error) {
     res.status(500).json({ error: error.message });

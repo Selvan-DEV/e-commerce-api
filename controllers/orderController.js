@@ -133,9 +133,11 @@ exports.createOrder = async (req, res) => {
         productId: item.productId,
         quantity: item.quantity,
         price: item.price,
+        variantId: item.variantId,
       }));
       await Promise.all(orderItems.map((item) => Order.addOrderItems(item)));
       await Order.deleteCartItemsByUserId(responseBody.userId);
+      await Order.updateCStable(responseBody.checkoutSessionId, orderId);
     }
 
     req.io.emit("orderUpdate", { orderId });
