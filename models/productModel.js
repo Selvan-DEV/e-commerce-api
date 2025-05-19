@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 class Product {
   static async getAll(filters, pagination) {
-    let query = `SELECT * FROM products WHERE 1=1 ORDER BY 1 DESC`;
+    let query = `SELECT * FROM products WHERE 1=1 ORDER BY 5 DESC`;
     const params = [];
 
     // if (filters.search) {
