@@ -372,7 +372,7 @@ exports.createCheckoutSession = async (req, res) => {
 
       billingAddressId = billingAddressResultId;
     } else if (formData.billingSameAsShipping) {
-      billingAddressId = formData.shippingAddressId;
+      billingAddressId = shippingAddressId;
     }
 
     // STEP 3: Validate coupon
