@@ -6,8 +6,8 @@ export const sendEmailWithAttachment = async ({ to, subject, text, attachments, 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "selvan894050@gmail.com",
-        pass: "btur xukw ouag bejy",
+        user: "nilafoods2025@gmail.com",
+        pass: "lnub jrsx wzqo zqvc",
       },
     });
 

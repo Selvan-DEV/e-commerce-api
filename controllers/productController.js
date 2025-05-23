@@ -143,7 +143,7 @@ exports.createReview = async (req, res) => {
 
       // Send email to admin
       await sendEmailWithAttachment({
-        to: "selvan894050@gmail.com",
+        to: "nilafoods2025@gmail.com",
         subject: "🆕 New Product Review Submitted",
         text: emailBody,
         attachments: [],
